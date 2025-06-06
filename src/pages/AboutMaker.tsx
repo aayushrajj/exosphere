@@ -32,14 +32,13 @@ const AboutMaker = () => {
   const handleNavigation = (path: string) => {
     navigate(path);
     setSidebarOpen(false);
-  };
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
+  };  return (
+    <div className="min-h-screen bg-gray-50 flex overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 flex flex-col`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 flex flex-col flex-shrink-0`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-gray-900">Exosphere</h1>
           <button
@@ -81,10 +80,11 @@ const AboutMaker = () => {
                 Logout
               </button>
             </div>
-          </div>
-        </div>
-      </div>      {/* Main content */}
-      <div className="md:pl-64 flex flex-col flex-1 min-h-screen">
+          </div>        </div>
+      </div>
+      
+      {/* Main content */}
+      <div className="flex flex-col flex-1 min-h-screen">
         {/* Top bar */}
         <div className="bg-white border-b border-gray-200 px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between">
