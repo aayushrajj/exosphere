@@ -9,17 +9,18 @@ import {
   Menu, 
   X,
   TrendingUp,
-  Info
+  Info,
+  User
 } from 'lucide-react';
 
 const About = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userName] = useState('Executive User'); // Mock user name
-
   const navigationItems = [
     { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: false },
     { name: 'About', icon: Info, path: '/about', current: true },
+    { name: 'About the Maker', icon: User, path: '/about-maker', current: false },
     { name: 'Chat', icon: MessageSquare, path: '/chat', current: false },
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
@@ -30,9 +31,8 @@ const About = () => {
     navigate(path);
     setSidebarOpen(false);
   };
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -81,10 +81,8 @@ const About = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Main content */}
-      <div className="md:pl-64">
+      </div>      {/* Main content */}
+      <div className="md:pl-64 flex flex-col flex-1 min-h-screen">
         {/* Top bar */}
         <div className="bg-white border-b border-gray-200 px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between">
