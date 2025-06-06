@@ -39,10 +39,8 @@ const AboutMaker = () => {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0`}>
+      )}      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 flex flex-col`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-gray-900">Exosphere</h1>
           <button
@@ -53,7 +51,7 @@ const AboutMaker = () => {
           </button>
         </div>
         
-        <nav className="mt-6 px-3">
+        <nav className="flex-grow overflow-y-auto py-6 px-3">
           {navigationItems.map((item) => (
             <button
               key={item.name}
@@ -70,7 +68,7 @@ const AboutMaker = () => {
           ))}
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200">
+        <div className="w-full p-4 border-t border-gray-200 mt-auto">
           <div className="flex items-center">
             <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-medium">EU</span>
