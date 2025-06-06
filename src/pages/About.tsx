@@ -105,12 +105,10 @@ const About = () => {
               })}
             </div>
           </div>
-        </div>
-
-        {/* About content */}
+        </div>        {/* About content */}
         <div className="px-4 py-6 sm:px-6">
           {/* Main content card */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-4xl">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
             {/* Intro paragraph */}
             <div className="mb-8">
               <p className="text-lg text-gray-700 leading-relaxed">
