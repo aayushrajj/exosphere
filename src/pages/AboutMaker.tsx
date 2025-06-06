@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -160,24 +159,23 @@ const AboutMaker = () => {
             
             {/* Resume embed area */}
             <div className="mb-4">
-              <div className="w-full h-96 md:h-[600px] border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <FileText className="h-12 w-12 mx-auto mb-2" />
-                  <p className="text-lg font-medium">Resume not available. Please check back later.</p>
-                  <p className="text-sm">PDF viewer will appear here when resume is uploaded</p>
-                </div>
-              </div>
+              <iframe 
+                src="/resume.pdf" 
+                className="w-full h-96 md:h-[600px] border border-gray-300 rounded-lg"
+                title="Resume PDF"
+              ></iframe>
             </div>
 
             {/* Download link */}
             <div className="flex justify-center">
-              <button 
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled
+              <a 
+                href="/resume.pdf" 
+                download
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download Resume ›
-              </button>
+              </a>
             </div>
           </div>
 
