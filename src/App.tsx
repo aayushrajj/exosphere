@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import About from "./pages/About";
+import AboutMaker from "./pages/AboutMaker";
 import Chat from "./pages/Chat";
 import Scheduler from "./pages/Scheduler";
 import Emails from "./pages/Emails";
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/about-maker" element={<AboutMaker />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/scheduler" element={<Scheduler />} />
           <Route path="/emails" element={<Emails />} />
