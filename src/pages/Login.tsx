@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,17 +14,53 @@ const Login = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Mock authentication - in real app this would call Supabase
-    setTimeout(() => {
-      console.log('Authentication successful');
+    setError('');
+
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
       setLoading(false);
+      return;
+    }
+    
+    try {
+      const endpoint = isLogin ? '/auth/login' : '/auth/signup';
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabase.supabaseKey
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Authentication failed');
+      }
+
+      // Store session in localStorage
+      if (data.session) {
+        localStorage.setItem('supabase.session', JSON.stringify(data.session));
+        localStorage.setItem('supabase.user', JSON.stringify(data.user));
+      }
+
+      console.log('Authentication successful:', data);
       navigate('/dashboard');
-    }, 1000);
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      setError(err.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +92,12 @@ const Login = () => {
               {isLogin ? 'Sign in to your account' : 'Get started with Exosphere'}
             </p>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email field */}

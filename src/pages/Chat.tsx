@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, MessageSquare, Bot, User, Loader } from 'lucide-react';
+import { supabase, getAuthHeaders } from '../lib/supabase';
 
 interface Message {
   id: string;
@@ -21,6 +22,14 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    // Check if user is authenticated
+    const session = localStorage.getItem('supabase.session');
+    if (!session) {
+      window.location.href = '/login';
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
@@ -36,35 +45,44 @@ const Chat = () => {
     setInputValue('');
     setIsLoading(true);
 
-    // Mock AI response - in real app this would call Google Gemini
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/chat`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'apikey': supabase.supabaseKey
+        },
+        body: JSON.stringify({
+          question: inputValue
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get AI response');
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: generateMockResponse(inputValue),
+        content: data.response || 'I apologize, but I couldn\'t generate a response.',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
-      setIsLoading(false);
-    }, 1500);
-  };
 
-  const generateMockResponse = (query: string): string => {
-    const lowerQuery = query.toLowerCase();
-    
-    if (lowerQuery.includes('delivery') || lowerQuery.includes('q2')) {
-      return 'Based on the Q2 delivery data, I found 3 key issues:\n\n• North Region: 2 warehouse delays affecting 15% of shipments\n• East Region: 1 logistics bottleneck causing 3-day average delays\n• West Region: Supplier issue resolved, delivery times normalized\n\nRecommendation: Focus on North Region warehouse optimization and East Region logistics review.';
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    if (lowerQuery.includes('revenue') || lowerQuery.includes('finance')) {
-      return 'Revenue Analysis Summary:\n\n• Q2 Revenue: $2.4M (8% increase YoY)\n• Finance Variance: +$120K above target\n• Top Performing: Sales Department (+15%)\n• Needs Attention: Ops Department (-3%)\n\nNext steps: Schedule finance review meeting with department heads.';
-    }
-    
-    if (lowerQuery.includes('meeting') || lowerQuery.includes('schedule')) {
-      return 'Your upcoming meetings:\n\n• Today 2:30 PM: Finance Review (CEO, CFO)\n• Tomorrow 10:00 AM: Sales Pipeline (Sales Team)\n• Friday 3:00 PM: Quarterly Planning (All Heads)\n\nWould you like me to schedule additional meetings or modify existing ones?';
-    }
-    
-    return 'I understand you\'re asking about business operations. Based on the available data from Departments, Metrics, and DeliveryIssues tables, I can provide insights on revenue performance, delivery optimization, departmental metrics, and scheduling. Could you please be more specific about what aspect you\'d like me to analyze?';
   };
 
   return (
