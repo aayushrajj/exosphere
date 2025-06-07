@@ -21,7 +21,7 @@ INSERT INTO metrics (name, department_id) VALUES
   ('Customer Satisfaction', 5);
 
 -- Insert sample delivery issues
-INSERT INTO delivery_issues (region, issue_description, reported_date) VALUES 
+INSERT INTO deliveryissues (region, issue_description, reported_date) VALUES 
   ('North America', 'Delayed shipments due to weather conditions', '2024-01-15'),
   ('Europe', 'Supply chain disruption affecting delivery times', '2024-01-20'),
   ('Asia Pacific', 'Customs clearance delays impacting schedule', '2024-01-25'),
@@ -29,7 +29,7 @@ INSERT INTO delivery_issues (region, issue_description, reported_date) VALUES
   ('Middle East', 'Regulatory compliance delays at border crossings', '2024-02-05');
 
 -- Insert sample calendar events
-INSERT INTO calendar_events (title, start_time, end_time, attendees) VALUES 
+INSERT INTO calendarevents (title, start_time, end_time, attendees) VALUES 
   ('Q1 Financial Review', '2024-03-15 09:00:00+00', '2024-03-15 10:30:00+00', ARRAY['CFO', 'Finance Team']),
   ('Sales Pipeline Review', '2024-03-16 14:00:00+00', '2024-03-16 15:00:00+00', ARRAY['Sales Director', 'Regional Managers']),
   ('Operations Planning Meeting', '2024-03-17 11:00:00+00', '2024-03-17 12:00:00+00', ARRAY['COO', 'Operations Team']),
