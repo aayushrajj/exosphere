@@ -17,7 +17,7 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userName] = useState('Executive User'); // Mock user name
+  const [userName] = useState('Ayush'); // Changed from 'Executive User' to 'Ayush'
 
   // Mock summary data
   const [summaryData] = useState({
@@ -94,7 +94,7 @@ const Dashboard = () => {
         <div className="w-full p-4 border-t border-gray-200 mt-auto">
           <div className="flex items-center">
             <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">EU</span>
+              <span className="text-white text-sm font-medium">A</span>
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-900">{userName}</p>

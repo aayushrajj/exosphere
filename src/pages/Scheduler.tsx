@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, Users, Plus, X, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -223,10 +224,12 @@ const Scheduler = () => {
               return (
                 <div
                   key={day}
-                  className="h-24 border-r border-b border-gray-100 p-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                  className={`h-24 border-r border-b border-gray-100 p-2 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    isToday ? 'bg-blue-50' : ''
+                  }`}
                   onClick={() => handleDateClick(day)}
                 >
-                  <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
+                  <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600 font-bold' : 'text-gray-900'}`}>
                     {day}
                   </div>
                   <div className="space-y-1">
