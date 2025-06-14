@@ -11,12 +11,11 @@ export const SUPABASE_URL = supabaseUrl
 export const SUPABASE_ANON_KEY = supabaseAnonKey
 
 // Helper function to get auth headers
-export const getAuthHeaders = () => {
-  const session = localStorage.getItem('supabase.session')
-  if (session) {
-    const { access_token } = JSON.parse(session)
+export const getAuthHeaders = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.access_token) {
     return {
-      'Authorization': `Bearer ${access_token}`,
+      'Authorization': `Bearer ${session.access_token}`,
       'Content-Type': 'application/json'
     }
   }

@@ -67,10 +67,12 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
+      const authHeaders = await getAuthHeaders();
+      
       const response = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: {
-          ...getAuthHeaders(),
+          ...authHeaders,
           'apikey': SUPABASE_ANON_KEY
         },
         body: JSON.stringify({
