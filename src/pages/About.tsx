@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -9,13 +10,15 @@ import {
   X,
   TrendingUp,
   Info,
-  User
+  User,
+  Settings
 } from 'lucide-react';
 
 const About = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userName] = useState('Ayush'); // Changed from 'Executive User' to 'Ayush'
+  const [userName] = useState('Ayush');
+  
   const navigationItems = [
     { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: false },
     { name: 'About', icon: Info, path: '/about', current: true },
@@ -29,12 +32,16 @@ const About = () => {
   const handleNavigation = (path: string) => {
     navigate(path);
     setSidebarOpen(false);
-  };  return (
+  };
+
+  return (
     <div className="min-h-screen bg-gray-50 flex overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden" onClick={() => setSidebarOpen(false)} />
-      )}      {/* Sidebar */}
+      )}
+
+      {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 flex flex-col flex-shrink-0`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-gray-900">Exosphere</h1>
@@ -64,20 +71,20 @@ const About = () => {
         </nav>
 
         <div className="w-full p-4 border-t border-gray-200 mt-auto">
-          <div className="flex items-center">
+          <button
+            onClick={() => navigate('/user-profile')}
+            className="w-full flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+          >
             <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-medium">A</span>
             </div>
-            <div className="ml-3">
+            <div className="ml-3 flex-1 text-left">
               <p className="text-sm font-medium text-gray-900">{userName}</p>
-              <button 
-                onClick={() => navigate('/login')}
-                className="text-xs text-gray-500 hover:text-gray-700"
-              >
-                Logout
-              </button>
+              <p className="text-xs text-gray-500">View Profile</p>
             </div>
-          </div>        </div>
+            <Settings className="h-4 w-4 text-gray-400" />
+          </button>
+        </div>
       </div>
       
       {/* Main content */}
@@ -104,7 +111,9 @@ const About = () => {
               })}
             </div>
           </div>
-        </div>        {/* About content */}
+        </div>
+
+        {/* About content */}
         <div className="px-4 py-6 sm:px-6">
           {/* Main content card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
