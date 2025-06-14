@@ -315,7 +315,7 @@ export const useOnboarding = () => {
         .from('user_organizations')
         .select(`
           *,
-          organization:organizations(*)
+          organizations!user_organizations_organization_id_fkey(*)
         `)
         .eq('user_id', user.id)
         .maybeSingle();

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut, Trash2, AlertTriangle } from 'lucide-react';
@@ -81,13 +80,13 @@ const UserProfile = () => {
 
         console.log('Profile fetched:', profile);
 
-        // Then get the user organization data
+        // Then get the user organization data with explicit foreign key reference
         console.log('Fetching user organization data...');
         const { data: userOrgData, error: userOrgError } = await supabase
           .from('user_organizations')
           .select(`
             executive_role,
-            organizations!inner(id, name, org_code, domain, founding_year, description)
+            organizations!user_organizations_organization_id_fkey(id, name, org_code, domain, founding_year, description)
           `)
           .eq('user_id', user.id)
           .single();
@@ -105,7 +104,7 @@ const UserProfile = () => {
 
         console.log('Organization data fetched:', userOrgData);
 
-        if (userOrgData && profile) {
+        if (userOrgData && profile && userOrgData.organizations) {
           const formattedData: UserOrganizationData = {
             full_name: profile.full_name || '',
             executive_role: userOrgData.executive_role,
