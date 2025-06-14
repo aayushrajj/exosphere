@@ -31,22 +31,37 @@ serve(async (req) => {
       throw new Error('Invalid token')
     }
 
-    const { question } = await req.json()
+    const { question, sessionId } = await req.json()
 
     if (!question) {
       throw new Error('Question is required')
     }
 
-    // Fetch context data from Supabase tables - using correct table names
+    // Fetch context data from Supabase tables
     const { data: departments } = await supabase.from('departments').select('*')
     const { data: metrics } = await supabase.from('metrics').select('*')
     const { data: deliveryIssues } = await supabase.from('deliveryissues').select('*')
+
+    // Fetch recent chat history for this session (last 10 messages)
+    const { data: chatHistory } = await supabase
+      .from('chatlogs')
+      .select('question, ai_response, timestamp')
+      .eq('user_id', user.id)
+      .eq('session_id', sessionId || 'default')
+      .order('timestamp', { ascending: true })
+      .limit(10)
 
     const context = {
       departments,
       metrics,
       deliveryIssues
     }
+
+    // Build conversation context from chat history
+    const conversationHistory = chatHistory?.map(chat => ({
+      user: chat.question,
+      assistant: chat.ai_response
+    })) || []
 
     // Enhanced system prompt with application context and conversational abilities
     const systemPrompt = `You are a chat assistant for Exosphere, the C-Suite Agent App. 
@@ -74,6 +89,8 @@ Exosphere is a comprehensive C-Suite Agent App designed to solve key executive c
 
 **DATABASE CONTEXT**: ${JSON.stringify(context)}
 
+**CONVERSATION HISTORY**: ${JSON.stringify(conversationHistory)}
+
 Now, please answer the following question: ${question}`
 
     // Call Google Gemini API with updated model
@@ -99,11 +116,12 @@ Now, please answer the following question: ${question}`
     const geminiData = await geminiResponse.json()
     const aiResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'Unable to generate response'
 
-    // Log the chat interaction - using correct table name
+    // Log the chat interaction with session ID
     await supabase.from('chatlogs').insert({
       user_id: user.id,
       question,
       ai_response: aiResponse,
+      session_id: sessionId || 'default',
       timestamp: new Date().toISOString()
     })
 

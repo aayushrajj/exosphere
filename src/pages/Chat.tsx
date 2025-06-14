@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, MessageSquare, Bot, User, Loader } from 'lucide-react';
+import { Send, MessageSquare, Bot, User, Loader, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, getAuthHeaders } from '../lib/supabase';
+import { Button } from '@/components/ui/button';
 
 interface Message {
   id: string;
@@ -25,8 +26,13 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [sessionId, setSessionId] = useState<string>('');
 
   useEffect(() => {
+    // Generate session ID on component mount
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+
     // Check authentication status
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -76,7 +82,8 @@ const Chat = () => {
           'apikey': SUPABASE_ANON_KEY
         },
         body: JSON.stringify({
-          question: inputValue
+          question: inputValue,
+          sessionId
         })
       });
 
@@ -108,6 +115,22 @@ const Chat = () => {
     }
   };
 
+  const handleRefreshSession = () => {
+    // Generate new session ID
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+    
+    // Reset messages to initial state
+    setMessages([
+      {
+        id: '1',
+        type: 'assistant',
+        content: 'Hello! I\'m your C-Suite Agent. I can help you with business queries, analyze metrics, and provide insights from your data. What would you like to know?',
+        timestamp: new Date()
+      }
+    ]);
+  };
+
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
     return (
@@ -121,12 +144,23 @@ const Chat = () => {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center">
-          <MessageSquare className="h-6 w-6 text-blue-600 mr-3" />
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">AI Chat Assistant</h1>
-            <p className="text-sm text-gray-600">Ask questions about your business data and metrics</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <MessageSquare className="h-6 w-6 text-blue-600 mr-3" />
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">AI Chat Assistant</h1>
+              <p className="text-sm text-gray-600">Ask questions about your business data and metrics</p>
+            </div>
           </div>
+          <Button
+            onClick={handleRefreshSession}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            New Session
+          </Button>
         </div>
       </div>
 
@@ -229,7 +263,7 @@ const Chat = () => {
             </button>
           </div>
           <p className="mt-2 text-xs text-gray-500">
-            Press Enter to send, Shift+Enter for new line
+            Press Enter to send, Shift+Enter for new line • Session ID: {sessionId.split('_')[1]}
           </p>
         </form>
       </div>
