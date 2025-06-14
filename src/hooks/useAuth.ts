@@ -10,31 +10,15 @@ export const useAuth = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/login');
-      } else {
-        setIsAuthenticated(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // Check if user needs onboarding
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('id', session.user.id)
-          .single();
-
-        if (!profile?.onboarding_completed) {
-          setNeedsOnboarding(true);
+        if (!session) {
+          setIsAuthenticated(false);
+          navigate('/login');
+          return;
         }
-      }
-    };
 
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!session) {
-        navigate('/login');
-      } else {
         setIsAuthenticated(true);
         
         // Check if user needs onboarding
@@ -49,6 +33,40 @@ export const useAuth = () => {
         } else {
           setNeedsOnboarding(false);
         }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        if (!session) {
+          setIsAuthenticated(false);
+          navigate('/login');
+          return;
+        }
+
+        setIsAuthenticated(true);
+        
+        // Check if user needs onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!profile?.onboarding_completed) {
+          setNeedsOnboarding(true);
+        } else {
+          setNeedsOnboarding(false);
+        }
+      } catch (error) {
+        console.error('Auth state change error:', error);
+        setIsAuthenticated(false);
       }
     });
 
