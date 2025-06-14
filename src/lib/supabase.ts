@@ -6,6 +6,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// Export the URL and key for API calls
+export const SUPABASE_URL = supabaseUrl
+export const SUPABASE_ANON_KEY = supabaseAnonKey
+
 // Helper function to get auth headers
 export const getAuthHeaders = () => {
   const session = localStorage.getItem('supabase.session')

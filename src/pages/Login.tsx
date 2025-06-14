@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -29,11 +28,11 @@ const Login = () => {
     
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/signup';
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1${endpoint}`, {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': supabase.supabaseKey
+          'apikey': SUPABASE_ANON_KEY
         },
         body: JSON.stringify({
           email: formData.email,

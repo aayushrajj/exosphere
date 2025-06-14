@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Send, MessageSquare, Bot, User, Loader } from 'lucide-react';
-import { supabase, getAuthHeaders } from '../lib/supabase';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, getAuthHeaders } from '../lib/supabase';
 
 interface Message {
   id: string;
@@ -46,11 +45,11 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/chat`, {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: {
           ...getAuthHeaders(),
-          'apikey': supabase.supabaseKey
+          'apikey': SUPABASE_ANON_KEY
         },
         body: JSON.stringify({
           question: inputValue
