@@ -37,19 +37,27 @@ serve(async (req) => {
       throw new Error('Question is required')
     }
 
+    console.log(`Processing question: "${question}" for session: ${sessionId || 'default'}`)
+
     // Fetch context data from Supabase tables
     const { data: departments } = await supabase.from('departments').select('*')
     const { data: metrics } = await supabase.from('metrics').select('*')
     const { data: deliveryIssues } = await supabase.from('deliveryissues').select('*')
 
     // Fetch recent chat history for this session (last 10 messages)
-    const { data: chatHistory } = await supabase
+    const { data: chatHistory, error: historyError } = await supabase
       .from('chatlogs')
       .select('question, ai_response, timestamp')
       .eq('user_id', user.id)
       .eq('session_id', sessionId || 'default')
       .order('timestamp', { ascending: true })
       .limit(10)
+
+    if (historyError) {
+      console.error('Error fetching chat history:', historyError)
+    }
+
+    console.log(`Found ${chatHistory?.length || 0} previous messages in this session`)
 
     const context = {
       departments,
@@ -86,12 +94,16 @@ Exosphere is a comprehensive C-Suite Agent App designed to solve key executive c
 - For Exosphere/business questions: Use the database context provided and give concise, executive-level insights
 - For general conversation: Engage naturally but always mention that your primary role is as an Exosphere assistant
 - Always be helpful, professional, and executive-focused in your responses
+- Remember previous conversation context to maintain continuity
 
 **DATABASE CONTEXT**: ${JSON.stringify(context)}
 
-**CONVERSATION HISTORY**: ${JSON.stringify(conversationHistory)}
+**CONVERSATION HISTORY**: 
+${conversationHistory.length > 0 ? 
+  conversationHistory.map(msg => `User: ${msg.user}\nAssistant: ${msg.assistant}`).join('\n\n') : 
+  'No previous conversation in this session.'}
 
-Now, please answer the following question: ${question}`
+Now, please answer the following question while considering the conversation history: ${question}`
 
     // Call Google Gemini API with updated model
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
@@ -116,14 +128,22 @@ Now, please answer the following question: ${question}`
     const geminiData = await geminiResponse.json()
     const aiResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'Unable to generate response'
 
+    console.log(`Generated AI response: ${aiResponse.substring(0, 100)}...`)
+
     // Log the chat interaction with session ID
-    await supabase.from('chatlogs').insert({
+    const { error: insertError } = await supabase.from('chatlogs').insert({
       user_id: user.id,
       question,
       ai_response: aiResponse,
       session_id: sessionId || 'default',
       timestamp: new Date().toISOString()
     })
+
+    if (insertError) {
+      console.error('Error inserting chat log:', insertError)
+    } else {
+      console.log('Chat log saved successfully')
+    }
 
     return new Response(
       JSON.stringify({ response: aiResponse }),

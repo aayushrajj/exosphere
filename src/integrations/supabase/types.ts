@@ -38,6 +38,7 @@ export type Database = {
           ai_response: string
           id: number
           question: string
+          session_id: string | null
           timestamp: string
           user_id: string
         }
@@ -45,6 +46,7 @@ export type Database = {
           ai_response: string
           id?: never
           question: string
+          session_id?: string | null
           timestamp?: string
           user_id: string
         }
@@ -52,6 +54,7 @@ export type Database = {
           ai_response?: string
           id?: never
           question?: string
+          session_id?: string | null
           timestamp?: string
           user_id?: string
         }
