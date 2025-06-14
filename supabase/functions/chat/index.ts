@@ -37,10 +37,10 @@ serve(async (req) => {
       throw new Error('Question is required')
     }
 
-    // Fetch context data from Supabase tables
+    // Fetch context data from Supabase tables - using correct table names
     const { data: departments } = await supabase.from('departments').select('*')
     const { data: metrics } = await supabase.from('metrics').select('*')
-    const { data: deliveryIssues } = await supabase.from('delivery_issues').select('*')
+    const { data: deliveryIssues } = await supabase.from('deliveryissues').select('*')
 
     const context = {
       departments,
@@ -71,8 +71,8 @@ serve(async (req) => {
     const geminiData = await geminiResponse.json()
     const aiResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'Unable to generate response'
 
-    // Log the chat interaction
-    await supabase.from('chat_logs').insert({
+    // Log the chat interaction - using correct table name
+    await supabase.from('chatlogs').insert({
       user_id: user.id,
       question,
       ai_response: aiResponse,
@@ -85,6 +85,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Chat function error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
