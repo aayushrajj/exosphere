@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -78,35 +77,47 @@ export const useOnboarding = () => {
   }): Promise<Organization | null> => {
     try {
       setLoading(true);
+      console.log('Creating organization with data:', orgData);
 
-      // Check if organization already exists
-      const { data: existingOrg } = await supabase
+      // Check if organization with this name already exists
+      console.log('Checking for existing organization with name:', orgData.name.trim());
+      const { data: existingOrg, error: checkError } = await supabase
         .from('organizations')
         .select('*')
         .eq('name', orgData.name.trim())
-        .eq('domain', orgData.domain?.trim() || '')
         .maybeSingle();
 
+      if (checkError) {
+        console.error('Error checking existing organization:', checkError);
+        throw checkError;
+      }
+
       if (existingOrg) {
+        console.log('Organization with this name already exists:', existingOrg);
         toast({
-          title: "Organization already exists",
-          description: "An organization with this name and domain already exists.",
+          title: "Organization name already taken",
+          description: "An organization with this name already exists. Please choose a different name.",
           variant: "destructive",
         });
         return null;
       }
 
+      console.log('Organization name is available, creating new organization...');
       const { data: organization, error } = await supabase
         .from('organizations')
         .insert([orgData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating organization:', error);
+        throw error;
+      }
 
+      console.log('Organization created successfully:', organization);
       return organization;
     } catch (error) {
-      console.error('Error creating organization:', error);
+      console.error('Error in createOrganization:', error);
       toast({
         title: "Error creating organization",
         description: "Failed to create organization. Please try again.",
