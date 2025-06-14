@@ -30,31 +30,33 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <div className="min-h-screen">
-            <Routes>
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/email-confirmation" element={<EmailConfirmation />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/user-profile" element={<UserProfile />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/about-maker" element={<AboutMaker />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/scheduler" element={<Scheduler />} />
-              <Route path="/emails" element={<Emails />} />
-              <Route path="/audit" element={<Audit />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-          <Toaster />
-          <Sonner />
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <BrowserRouter>
+            <div className="min-h-screen">
+              <Routes>
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/user-profile" element={<UserProfile />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/about-maker" element={<AboutMaker />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/scheduler" element={<Scheduler />} />
+                <Route path="/emails" element={<Emails />} />
+                <Route path="/audit" element={<Audit />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <Toaster />
+            <Sonner />
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 };
 
