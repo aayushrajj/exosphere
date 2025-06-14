@@ -13,6 +13,7 @@ import Chat from "./pages/Chat";
 import Scheduler from "./pages/Scheduler";
 import Emails from "./pages/Emails";
 import Audit from "./pages/Audit";
+import EmailConfirmation from "./pages/EmailConfirmation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/email-confirmation" element={<EmailConfirmation />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/about" element={<About />} />
           <Route path="/about-maker" element={<AboutMaker />} />

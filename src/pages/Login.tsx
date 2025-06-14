@@ -51,7 +51,7 @@ const Login = () => {
           email: formData.email,
           password: formData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: `${window.location.origin}/email-confirmation`
           }
         });
 
