@@ -32,9 +32,9 @@ serve(async (req) => {
     }
 
     if (req.method === 'GET') {
-      // Get all calendar events
+      // Get all calendar events - using correct table name
       const { data: meetings, error } = await supabase
-        .from('calendar_events')
+        .from('calendarevents')
         .select('*')
         .order('start_time', { ascending: true })
 
@@ -47,7 +47,7 @@ serve(async (req) => {
     }
 
     if (req.method === 'POST') {
-      // Create new meeting
+      // Create new meeting - using correct table name
       const { title, start_time, end_time, attendees } = await req.json()
 
       if (!title || !start_time || !end_time) {
@@ -55,7 +55,7 @@ serve(async (req) => {
       }
 
       const { data: meeting, error } = await supabase
-        .from('calendar_events')
+        .from('calendarevents')
         .insert({
           title,
           start_time,
@@ -79,6 +79,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Meetings function error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

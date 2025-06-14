@@ -31,19 +31,19 @@ serve(async (req) => {
       throw new Error('Invalid token')
     }
 
-    // Fetch audit data from multiple tables
+    // Fetch audit data from multiple tables - using correct table names
     const { data: chatLogs } = await supabase
-      .from('chat_logs')
+      .from('chatlogs')
       .select('question, ai_response, timestamp')
       .order('timestamp', { ascending: false })
 
     const { data: meetings } = await supabase
-      .from('calendar_events')
+      .from('calendarevents')
       .select('title, start_time, end_time, attendees')
       .order('start_time', { ascending: false })
 
     const { data: emails } = await supabase
-      .from('sent_emails')
+      .from('sentemails')
       .select('department, metric, draft, sent_at')
       .order('sent_at', { ascending: false })
 
@@ -104,6 +104,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Audit function error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

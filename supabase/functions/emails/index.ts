@@ -71,7 +71,7 @@ serve(async (req) => {
     }
 
     if (path.includes('/send')) {
-      // Log sent email
+      // Log sent email - using correct table name
       const { department, metric, draft } = await req.json()
 
       if (!department || !metric || !draft) {
@@ -79,7 +79,7 @@ serve(async (req) => {
       }
 
       const { data: sentEmail, error } = await supabase
-        .from('sent_emails')
+        .from('sentemails')
         .insert({
           department,
           metric,
@@ -103,6 +103,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Emails function error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
