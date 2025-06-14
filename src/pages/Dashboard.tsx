@@ -24,10 +24,13 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userName] = useState('Ayush');
 
-  // Show onboarding if needed
-  if (needsOnboarding) {
-    return <OnboardingFlow onComplete={() => window.location.reload()} />;
-  }
+  // Mock summary data - moved before any conditional returns
+  const [summaryData] = useState({
+    openQueries: 0,
+    nextMeeting: 'Today at 2:30 PM',
+    unsentDrafts: 0,
+    totalMetrics: 12
+  });
 
   // Show loading if still checking auth
   if (isAuthenticated === null) {
@@ -38,13 +41,10 @@ const Dashboard = () => {
     );
   }
 
-  // Mock summary data
-  const [summaryData] = useState({
-    openQueries: 0,
-    nextMeeting: 'Today at 2:30 PM',
-    unsentDrafts: 0,
-    totalMetrics: 12
-  });
+  // Show onboarding if needed
+  if (needsOnboarding) {
+    return <OnboardingFlow onComplete={() => window.location.reload()} />;
+  }
 
   const navigationItems = [
     { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: true },
