@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Building2, User, Calendar, Globe } from 'lucide-react';
+import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -127,6 +126,33 @@ const UserProfile = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to logout. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out.",
+        });
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Unexpected logout error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during logout.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -153,17 +179,28 @@ const UserProfile = () => {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/dashboard')}
+              className="mr-3"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <h1 className="text-2xl font-bold text-gray-900">User & Organization Profile</h1>
+          </div>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={() => navigate('/dashboard')}
-            className="mr-3"
+            onClick={handleLogout}
+            className="flex items-center"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">User & Organization Profile</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
