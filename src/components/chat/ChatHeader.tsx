@@ -1,5 +1,6 @@
 
-import { MessageSquare, RefreshCw } from 'lucide-react';
+import { MessageSquare, RefreshCw, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 interface ChatHeaderProps {
@@ -7,10 +8,20 @@ interface ChatHeaderProps {
 }
 
 export const ChatHeader = ({ onRefreshSession }: ChatHeaderProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
+          <Button
+            onClick={() => navigate('/dashboard')}
+            variant="ghost"
+            size="sm"
+            className="mr-3 p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <MessageSquare className="h-6 w-6 text-blue-600 mr-3" />
           <div>
             <h1 className="text-xl font-bold text-gray-900">AI Chat Assistant</h1>

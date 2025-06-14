@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
-import { Calendar as CalendarIcon, Clock, Users, Plus, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Users, Plus, X, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface CalendarEvent {
   id: string;
@@ -12,6 +12,7 @@ interface CalendarEvent {
 }
 
 const Scheduler = () => {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -82,6 +83,14 @@ const Scheduler = () => {
     setShowAddModal(true);
   };
 
+  const handleAddMeetingClick = () => {
+    // Set today's date as default if no date is selected
+    if (!selectedDate) {
+      setSelectedDate(new Date().toISOString().split('T')[0]);
+    }
+    setShowAddModal(true);
+  };
+
   const handleAddEvent = () => {
     if (newEvent.title && newEvent.start_time && newEvent.end_time && selectedDate) {
       const event: CalendarEvent = {
@@ -130,18 +139,30 @@ const Scheduler = () => {
     });
   };
 
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Meeting Scheduler</h1>
-              <p className="text-gray-600 mt-1">Schedule and manage your executive meetings</p>
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="mr-4 p-2 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Meeting Scheduler</h1>
+                <p className="text-gray-600 mt-1">Schedule and manage your executive meetings</p>
+              </div>
             </div>
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={handleAddMeetingClick}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -160,9 +181,17 @@ const Scheduler = () => {
             >
               ←
             </button>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </h2>
+              <button
+                onClick={goToToday}
+                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+              >
+                Today
+              </button>
+            </div>
             <button
               onClick={() => navigateMonth('next')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -251,16 +280,16 @@ const Scheduler = () => {
                 />
               </div>
 
-              {/* Date (read-only) */}
+              {/* Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Date
                 </label>
                 <input
-                  type="text"
-                  value={selectedDate ? new Date(selectedDate).toLocaleDateString() : ''}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 

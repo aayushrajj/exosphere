@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
-import { Mail, Send, Wand2, Building, TrendingUp } from 'lucide-react';
+import { Mail, Send, Wand2, Building, TrendingUp, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface EmailDraft {
   id: string;
@@ -11,6 +11,7 @@ interface EmailDraft {
 }
 
 const Emails = () => {
+  const navigate = useNavigate();
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedMetric, setSelectedMetric] = useState('');
   const [emailDraft, setEmailDraft] = useState('');
@@ -173,8 +174,18 @@ Best regards,
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Email Composer</h1>
-          <p className="text-gray-600 mt-1">Generate AI-powered business emails based on departments and metrics</p>
+          <div className="flex items-center mb-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="mr-4 p-2 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Email Composer</h1>
+              <p className="text-gray-600 mt-1">Generate AI-powered business emails based on departments and metrics</p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
-import { FileText, MessageSquare, Calendar, Mail, Filter, Search } from 'lucide-react';
+import { FileText, MessageSquare, Calendar, Mail, Filter, Search, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface AuditLogEntry {
   id: string;
@@ -11,6 +11,7 @@ interface AuditLogEntry {
 }
 
 const Audit = () => {
+  const navigate = useNavigate();
   const [filterType, setFilterType] = useState<'All' | 'Chat' | 'Meeting' | 'Email'>('All');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -122,8 +123,18 @@ const Audit = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Audit Log</h1>
-          <p className="text-gray-600 mt-1">Track all system actions and executive activities</p>
+          <div className="flex items-center mb-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="mr-4 p-2 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Audit Log</h1>
+              <p className="text-gray-600 mt-1">Track all system actions and executive activities</p>
+            </div>
+          </div>
         </div>
 
         {/* Summary Cards */}
