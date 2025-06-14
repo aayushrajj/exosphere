@@ -32,18 +32,21 @@ export const useOrganizationChanges = (organizationId?: string) => {
         }
 
         // Process changes and show notifications
-        changes?.forEach((change: OrganizationChange) => {
-          if (change.action_type === 'ceo_promoted') {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user && change.new_ceo_id === user.id) {
-              toast({
-                title: "You've been promoted to CEO!",
-                description: "You are now the CEO of your organization due to the previous CEO leaving.",
-                duration: 10000,
-              });
+        if (changes && changes.length > 0) {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          changes.forEach((change: OrganizationChange) => {
+            if (change.action_type === 'ceo_promoted') {
+              if (user && change.new_ceo_id === user.id) {
+                toast({
+                  title: "You've been promoted to CEO!",
+                  description: "You are now the CEO of your organization due to the previous CEO leaving.",
+                  duration: 10000,
+                });
+              }
             }
-          }
-        });
+          });
+        }
 
         setLastCheck(new Date());
       } catch (error) {
