@@ -20,6 +20,8 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
   const [error, setError] = useState('');
   const { loading, joinOrganization } = useOnboarding();
 
+  console.log('UserInfoForm rendered with organizationId:', organizationId);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -31,18 +33,38 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
     e.preventDefault();
     setError('');
 
+    console.log('Form submitted with data:', formData);
+    console.log('Organization ID:', organizationId);
+
     if (!formData.fullName.trim() || !formData.executiveRole.trim()) {
       setError('Please fill in all required fields');
       return;
     }
 
-    const success = await joinOrganization(organizationId, {
-      fullName: formData.fullName.trim(),
-      executiveRole: formData.executiveRole.trim()
-    });
+    if (!organizationId) {
+      setError('Organization ID is missing');
+      return;
+    }
 
-    if (success) {
-      onComplete();
+    try {
+      console.log('Calling joinOrganization...');
+      const success = await joinOrganization(organizationId, {
+        fullName: formData.fullName.trim(),
+        executiveRole: formData.executiveRole.trim()
+      });
+
+      console.log('joinOrganization result:', success);
+
+      if (success) {
+        console.log('Success! Calling onComplete...');
+        onComplete();
+      } else {
+        console.log('joinOrganization returned false');
+        setError('Failed to complete setup. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error in handleSubmit:', err);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 

@@ -124,18 +124,32 @@ export const useOnboarding = () => {
   }): Promise<boolean> => {
     try {
       setLoading(true);
+      console.log('joinOrganization started with:', { organizationId, userData });
+      
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      if (!user) {
+        console.error('No authenticated user found');
+        throw new Error('No authenticated user');
+      }
+
+      console.log('Current user:', user.id);
 
       // Check if executive role is already taken
-      const { data: existingRole } = await supabase
+      console.log('Checking if executive role is already taken...');
+      const { data: existingRole, error: roleCheckError } = await supabase
         .from('user_organizations')
         .select('*')
         .eq('organization_id', organizationId)
         .eq('executive_role', userData.executiveRole.trim())
         .maybeSingle();
 
+      if (roleCheckError) {
+        console.error('Error checking existing role:', roleCheckError);
+        throw roleCheckError;
+      }
+
       if (existingRole) {
+        console.log('Role already exists:', existingRole);
         toast({
           title: "Role already assigned",
           description: "This executive role is already assigned in your organization.",
@@ -144,8 +158,9 @@ export const useOnboarding = () => {
         return false;
       }
 
+      console.log('Role is available, updating profile...');
       // Update profile
-      await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
@@ -153,14 +168,27 @@ export const useOnboarding = () => {
           onboarding_completed: true,
         });
 
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        throw profileError;
+      }
+
+      console.log('Profile updated, creating user-organization relationship...');
       // Create user-organization relationship
-      await supabase
+      const { error: orgError } = await supabase
         .from('user_organizations')
         .insert({
           user_id: user.id,
           organization_id: organizationId,
           executive_role: userData.executiveRole,
         });
+
+      if (orgError) {
+        console.error('Error creating user-organization relationship:', orgError);
+        throw orgError;
+      }
+
+      console.log('User-organization relationship created successfully');
 
       toast({
         title: "Onboarding completed!",
