@@ -28,12 +28,18 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        console.log('Starting to fetch user data...');
+        
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('Current user:', user);
+        
         if (!user) {
+          console.log('No user found, redirecting to login');
           navigate('/login');
           return;
         }
 
+        console.log('Fetching profile for user:', user.id);
         // First get the user profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -48,10 +54,14 @@ const UserProfile = () => {
             description: "Failed to load user profile",
             variant: "destructive",
           });
+          setLoading(false);
           return;
         }
 
+        console.log('Profile fetched:', profile);
+
         // Then get the user organization data
+        console.log('Fetching user organization data...');
         const { data: userOrgData, error: userOrgError } = await supabase
           .from('user_organizations')
           .select(`
@@ -68,8 +78,11 @@ const UserProfile = () => {
             description: "Failed to load organization information",
             variant: "destructive",
           });
+          setLoading(false);
           return;
         }
+
+        console.log('Organization data fetched:', userOrgData);
 
         if (userOrgData && profile) {
           const formattedData: UserOrganizationData = {
@@ -83,16 +96,20 @@ const UserProfile = () => {
               description: userOrgData.organizations.description
             }
           };
+          console.log('Setting formatted user data:', formattedData);
           setUserData(formattedData);
+        } else {
+          console.log('Missing profile or organization data');
         }
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Unexpected error in fetchUserData:', error);
         toast({
           title: "Error",
           description: "An unexpected error occurred",
           variant: "destructive",
         });
       } finally {
+        console.log('Setting loading to false');
         setLoading(false);
       }
     };
