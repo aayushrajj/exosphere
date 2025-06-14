@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   MessageSquare, 
@@ -15,11 +14,13 @@ import {
   User,
   Settings
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userName] = useState('Ayush');
+  const [userName, setUserName] = useState('User');
+  const [loading, setLoading] = useState(true);
 
   // Mock summary data
   const [summaryData] = useState({
@@ -28,6 +29,34 @@ const Dashboard = () => {
     unsentDrafts: 0,
     totalMetrics: 12
   });
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile?.full_name) {
+            // Extract first name from full name
+            const firstName = profile.full_name.split(' ')[0];
+            setUserName(firstName);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user name:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserName();
+  }, []);
 
   const navigationItems = [
     { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: true },
@@ -62,6 +91,14 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex overflow-hidden">
@@ -105,7 +142,7 @@ const Dashboard = () => {
             className="w-full flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">A</span>
+              <span className="text-white text-sm font-medium">{userName.charAt(0).toUpperCase()}</span>
             </div>
             <div className="ml-3 flex-1 text-left">
               <p className="text-sm font-medium text-gray-900">{userName}</p>
