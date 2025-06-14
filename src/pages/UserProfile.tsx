@@ -34,19 +34,15 @@ const UserProfile = () => {
           return;
         }
 
-        // Fetch user profile and organization data
-        const { data: userOrgData, error } = await supabase
-          .from('user_organizations')
-          .select(`
-            executive_role,
-            profiles!inner(full_name),
-            organizations!inner(name, org_code, domain, founding_year, description)
-          `)
-          .eq('user_id', user.id)
+        // First get the user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
           .single();
 
-        if (error) {
-          console.error('Error fetching user data:', error);
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
           toast({
             title: "Error",
             description: "Failed to load user profile",
@@ -55,9 +51,29 @@ const UserProfile = () => {
           return;
         }
 
-        if (userOrgData) {
+        // Then get the user organization data
+        const { data: userOrgData, error: userOrgError } = await supabase
+          .from('user_organizations')
+          .select(`
+            executive_role,
+            organizations!inner(name, org_code, domain, founding_year, description)
+          `)
+          .eq('user_id', user.id)
+          .single();
+
+        if (userOrgError) {
+          console.error('Error fetching organization data:', userOrgError);
+          toast({
+            title: "Error",
+            description: "Failed to load organization information",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (userOrgData && profile) {
           const formattedData: UserOrganizationData = {
-            full_name: userOrgData.profiles.full_name || '',
+            full_name: profile.full_name || '',
             executive_role: userOrgData.executive_role,
             organization: {
               name: userOrgData.organizations.name,
