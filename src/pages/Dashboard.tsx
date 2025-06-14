@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   MessageSquare, 
@@ -15,36 +15,19 @@ import {
   User,
   Settings
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, needsOnboarding } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userName] = useState('Ayush');
 
-  // Mock summary data - moved before any conditional returns
+  // Mock summary data
   const [summaryData] = useState({
     openQueries: 0,
     nextMeeting: 'Today at 2:30 PM',
     unsentDrafts: 0,
     totalMetrics: 12
   });
-
-  // Show loading if still checking auth
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  // Show onboarding if needed
-  if (needsOnboarding) {
-    return <OnboardingFlow onComplete={() => window.location.reload()} />;
-  }
 
   const navigationItems = [
     { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: true },
