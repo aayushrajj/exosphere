@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +37,8 @@ const UserProfile = () => {
   const [userData, setUserData] = useState<UserOrganizationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteOrgPassword, setDeleteOrgPassword] = useState('');
+  const [deleteUserPassword, setDeleteUserPassword] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -141,11 +143,47 @@ const UserProfile = () => {
     }
   };
 
-  const handleDeleteOrganization = async () => {
-    if (!userData?.organization.id) return;
+  const verifyPasswordAndDeleteOrganization = async () => {
+    if (!userData?.organization.id || !deleteOrgPassword.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your password to confirm deletion.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setDeleteLoading(true);
     try {
+      // First verify the password by attempting to sign in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        toast({
+          title: "Error",
+          description: "Unable to verify user credentials.",
+          variant: "destructive",
+        });
+        setDeleteLoading(false);
+        return;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: deleteOrgPassword
+      });
+
+      if (signInError) {
+        toast({
+          title: "Error",
+          description: "Incorrect password. Please try again.",
+          variant: "destructive",
+        });
+        setDeleteOrgPassword('');
+        setDeleteLoading(false);
+        return;
+      }
+
+      // If password is correct, proceed with deletion
       const { error } = await supabase.rpc('delete_organization', {
         org_id: userData.organization.id
       });
@@ -176,15 +214,50 @@ const UserProfile = () => {
       });
     } finally {
       setDeleteLoading(false);
+      setDeleteOrgPassword('');
     }
   };
 
-  const handleDeleteUser = async () => {
+  const verifyPasswordAndDeleteUser = async () => {
+    if (!deleteUserPassword.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your password to confirm deletion.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user?.email) {
+      toast({
+        title: "Error",
+        description: "Unable to verify user credentials.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setDeleteLoading(true);
     try {
+      // First verify the password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: deleteUserPassword
+      });
+
+      if (signInError) {
+        toast({
+          title: "Error",
+          description: "Incorrect password. Please try again.",
+          variant: "destructive",
+        });
+        setDeleteUserPassword('');
+        setDeleteLoading(false);
+        return;
+      }
+
+      // If password is correct, proceed with deletion
       const { error } = await supabase.rpc('delete_user_data', {
         user_id_param: user.id
       });
@@ -215,6 +288,7 @@ const UserProfile = () => {
       });
     } finally {
       setDeleteLoading(false);
+      setDeleteUserPassword('');
     }
   };
 
@@ -418,20 +492,32 @@ const UserProfile = () => {
                     <AlertDialogTitle>Delete Organization</AlertDialogTitle>
                     <AlertDialogDescription>
                       This will permanently delete the organization "{userData.organization.name}" and all associated data including:
-                      <ul className="list-disc ml-6 mt-2">
+                      <ul className="list-disc ml-6 mt-2 mb-4">
                         <li>All user accounts in this organization</li>
                         <li>All chat logs and data</li>
                         <li>Organization settings and information</li>
                       </ul>
-                      This action cannot be undone. Are you absolutely sure?
+                      <strong>This action cannot be undone.</strong>
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Enter your password to confirm:
+                        </label>
+                        <Input
+                          type="password"
+                          placeholder="Enter your password"
+                          value={deleteOrgPassword}
+                          onChange={(e) => setDeleteOrgPassword(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => setDeleteOrgPassword('')}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={handleDeleteOrganization}
+                      onClick={verifyPasswordAndDeleteOrganization}
                       className="bg-red-600 hover:bg-red-700"
-                      disabled={deleteLoading}
+                      disabled={deleteLoading || !deleteOrgPassword.trim()}
                     >
                       {deleteLoading ? "Deleting..." : "Yes, Delete Organization"}
                     </AlertDialogAction>
@@ -465,20 +551,32 @@ const UserProfile = () => {
                     <AlertDialogTitle>Delete Your Account</AlertDialogTitle>
                     <AlertDialogDescription>
                       This will permanently delete your account and all associated data including:
-                      <ul className="list-disc ml-6 mt-2">
+                      <ul className="list-disc ml-6 mt-2 mb-4">
                         <li>Your profile information</li>
                         <li>Your chat logs and conversations</li>
                         <li>Your organization membership</li>
                       </ul>
-                      This action cannot be undone. Are you sure you want to delete your account?
+                      <strong>This action cannot be undone.</strong>
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Enter your password to confirm:
+                        </label>
+                        <Input
+                          type="password"
+                          placeholder="Enter your password"
+                          value={deleteUserPassword}
+                          onChange={(e) => setDeleteUserPassword(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => setDeleteUserPassword('')}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={handleDeleteUser}
+                      onClick={verifyPasswordAndDeleteUser}
                       className="bg-red-600 hover:bg-red-700"
-                      disabled={deleteLoading}
+                      disabled={deleteLoading || !deleteUserPassword.trim()}
                     >
                       {deleteLoading ? "Deleting..." : "Yes, Delete My Account"}
                     </AlertDialogAction>
