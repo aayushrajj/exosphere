@@ -14,6 +14,8 @@ import Scheduler from "./pages/Scheduler";
 import Emails from "./pages/Emails";
 import Audit from "./pages/Audit";
 import EmailConfirmation from "./pages/EmailConfirmation";
+import Onboarding from "./pages/Onboarding";
+import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,7 +30,9 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/user-profile" element={<UserProfile />} />
           <Route path="/about" element={<About />} />
           <Route path="/about-maker" element={<AboutMaker />} />
           <Route path="/chat" element={<Chat />} />

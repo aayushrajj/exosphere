@@ -122,6 +122,63 @@ export type Database = {
           },
         ]
       }
+      organizations: {
+        Row: {
+          created_at: string | null
+          description: string
+          domain: string | null
+          founding_year: number | null
+          id: string
+          name: string
+          org_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          domain?: string | null
+          founding_year?: number | null
+          id?: string
+          name: string
+          org_code?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          domain?: string | null
+          founding_year?: number | null
+          id?: string
+          name?: string
+          org_code?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          onboarding_completed: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          onboarding_completed?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sentemails: {
         Row: {
           department: string
@@ -145,6 +202,41 @@ export type Database = {
           sent_at?: string
         }
         Relationships: []
+      }
+      user_organizations: {
+        Row: {
+          created_at: string | null
+          executive_role: string
+          id: string
+          organization_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          executive_role: string
+          id?: string
+          organization_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          executive_role?: string
+          id?: string
+          organization_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_organizations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
