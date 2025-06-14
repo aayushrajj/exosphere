@@ -1,8 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut } from 'lucide-react';
+import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -10,6 +22,7 @@ interface UserOrganizationData {
   full_name: string;
   executive_role: string;
   organization: {
+    id: string;
     name: string;
     org_code: string;
     domain?: string;
@@ -23,6 +36,7 @@ const UserProfile = () => {
   const { toast } = useToast();
   const [userData, setUserData] = useState<UserOrganizationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -65,7 +79,7 @@ const UserProfile = () => {
           .from('user_organizations')
           .select(`
             executive_role,
-            organizations!inner(name, org_code, domain, founding_year, description)
+            organizations!inner(id, name, org_code, domain, founding_year, description)
           `)
           .eq('user_id', user.id)
           .single();
@@ -88,6 +102,7 @@ const UserProfile = () => {
             full_name: profile.full_name || '',
             executive_role: userOrgData.executive_role,
             organization: {
+              id: userOrgData.organizations.id,
               name: userOrgData.organizations.name,
               org_code: userOrgData.organizations.org_code,
               domain: userOrgData.organizations.domain,
@@ -123,6 +138,83 @@ const UserProfile = () => {
         title: "Copied!",
         description: "Organization code copied to clipboard",
       });
+    }
+  };
+
+  const handleDeleteOrganization = async () => {
+    if (!userData?.organization.id) return;
+    
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase.rpc('delete_organization', {
+        org_id: userData.organization.id
+      });
+
+      if (error) {
+        console.error('Delete organization error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete organization. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Organization Deleted",
+          description: "The organization and all its data have been permanently deleted.",
+        });
+        
+        // Sign out the user after deleting organization
+        await supabase.auth.signOut();
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Unexpected delete organization error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting the organization.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase.rpc('delete_user_data', {
+        user_id_param: user.id
+      });
+
+      if (error) {
+        console.error('Delete user error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete user data. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "User Data Deleted",
+          description: "Your user data has been permanently deleted.",
+        });
+        
+        // Sign out the user after deleting their data
+        await supabase.auth.signOut();
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Unexpected delete user error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting user data.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -174,6 +266,8 @@ const UserProfile = () => {
       </div>
     );
   }
+
+  const isCEO = userData.executive_role === 'CEO';
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -289,6 +383,109 @@ const UserProfile = () => {
           </CardHeader>
           <CardContent>
             <p className="text-gray-700 leading-relaxed">{userData.organization.description}</p>
+          </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
+        <Card className="mt-6 border-red-200">
+          <CardHeader>
+            <CardTitle className="text-red-700">Danger Zone</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Delete Organization Button - Only for CEO */}
+            <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">Delete Organization</h4>
+                <p className="text-sm text-gray-600">
+                  Permanently delete this organization and all associated data. This action cannot be undone.
+                  {!isCEO && " (Only available to CEO)"}
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={!isCEO || deleteLoading}
+                    className="flex items-center"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Organization
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Organization</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete the organization "{userData.organization.name}" and all associated data including:
+                      <ul className="list-disc ml-6 mt-2">
+                        <li>All user accounts in this organization</li>
+                        <li>All chat logs and data</li>
+                        <li>Organization settings and information</li>
+                      </ul>
+                      This action cannot be undone. Are you absolutely sure?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteOrganization}
+                      className="bg-red-600 hover:bg-red-700"
+                      disabled={deleteLoading}
+                    >
+                      {deleteLoading ? "Deleting..." : "Yes, Delete Organization"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+
+            {/* Delete User Button */}
+            <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">Delete Your Account</h4>
+                <p className="text-sm text-gray-600">
+                  Permanently delete your user account and all associated data. This action cannot be undone.
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={deleteLoading}
+                    className="flex items-center"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Account
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Your Account</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete your account and all associated data including:
+                      <ul className="list-disc ml-6 mt-2">
+                        <li>Your profile information</li>
+                        <li>Your chat logs and conversations</li>
+                        <li>Your organization membership</li>
+                      </ul>
+                      This action cannot be undone. Are you sure you want to delete your account?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteUser}
+                      className="bg-red-600 hover:bg-red-700"
+                      disabled={deleteLoading}
+                    >
+                      {deleteLoading ? "Deleting..." : "Yes, Delete My Account"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </CardContent>
         </Card>
       </div>
