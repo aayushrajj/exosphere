@@ -75,8 +75,9 @@ export const useOnboarding = () => {
     domain?: string;
     description: string;
   }): Promise<Organization | null> => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
       console.log('Creating organization with data:', orgData);
 
       // Check if organization with this name already exists
@@ -89,7 +90,12 @@ export const useOnboarding = () => {
 
       if (checkError) {
         console.error('Error checking existing organization:', checkError);
-        throw checkError;
+        toast({
+          title: "Error checking organization",
+          description: "Failed to check if organization exists. Please try again.",
+          variant: "destructive",
+        });
+        return null;
       }
 
       if (existingOrg) {
@@ -111,10 +117,19 @@ export const useOnboarding = () => {
 
       if (error) {
         console.error('Error creating organization:', error);
-        throw error;
+        toast({
+          title: "Error creating organization",
+          description: "Failed to create organization. Please try again.",
+          variant: "destructive",
+        });
+        return null;
       }
 
       console.log('Organization created successfully:', organization);
+      toast({
+        title: "Organization created!",
+        description: "Your organization has been successfully created.",
+      });
       return organization;
     } catch (error) {
       console.error('Error in createOrganization:', error);
