@@ -122,6 +122,47 @@ export type Database = {
           },
         ]
       }
+      organization_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          new_ceo_id: string | null
+          old_ceo_id: string | null
+          organization_id: string | null
+          triggered_by_user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          new_ceo_id?: string | null
+          old_ceo_id?: string | null
+          organization_id?: string | null
+          triggered_by_user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          new_ceo_id?: string | null
+          old_ceo_id?: string | null
+          organization_id?: string | null
+          triggered_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_audit_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string | null
@@ -250,6 +291,21 @@ export type Database = {
       delete_user_data: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      get_next_ceo_candidate: {
+        Args: { org_id: string }
+        Returns: string
+      }
+      get_recent_organization_changes: {
+        Args: { org_id: string; since_timestamp?: string }
+        Returns: {
+          id: string
+          action_type: string
+          old_ceo_id: string
+          new_ceo_id: string
+          details: Json
+          created_at: string
+        }[]
       }
     }
     Enums: {

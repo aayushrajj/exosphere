@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut, Trash2 } from 'lucide-react';
+import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useOrganizationChanges } from '@/hooks/useOrganizationChanges';
 
 interface UserOrganizationData {
   full_name: string;
@@ -39,6 +41,10 @@ const UserProfile = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteOrgPassword, setDeleteOrgPassword] = useState('');
   const [deleteUserPassword, setDeleteUserPassword] = useState('');
+  const [organizationUserCount, setOrganizationUserCount] = useState(0);
+
+  // Use the organization changes hook for notifications
+  useOrganizationChanges(userData?.organization.id);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -114,6 +120,16 @@ const UserProfile = () => {
           };
           console.log('Setting formatted user data:', formattedData);
           setUserData(formattedData);
+
+          // Get organization user count
+          const { count, error: countError } = await supabase
+            .from('user_organizations')
+            .select('*', { count: 'exact', head: true })
+            .eq('organization_id', userOrgData.organizations.id);
+
+          if (!countError && count !== null) {
+            setOrganizationUserCount(count);
+          }
         } else {
           console.log('Missing profile or organization data');
         }
@@ -319,6 +335,55 @@ const UserProfile = () => {
     }
   };
 
+  const getUserDeletionConsequences = () => {
+    if (!userData) return null;
+
+    const isCEO = userData.executive_role === 'CEO';
+    const isLastUser = organizationUserCount === 1;
+    const hasOtherUsers = organizationUserCount > 1;
+
+    if (isLastUser) {
+      return {
+        title: "Delete Account & Organization",
+        description: "You are the only member of this organization. Deleting your account will also permanently delete the entire organization.",
+        consequences: [
+          "Your account and profile will be deleted",
+          "The entire organization will be deleted",
+          "All organization data will be permanently lost",
+          "This action cannot be undone"
+        ],
+        icon: AlertTriangle,
+        buttonText: "Delete Account & Organization"
+      };
+    } else if (isCEO && hasOtherUsers) {
+      return {
+        title: "Delete Account & Transfer CEO Role",
+        description: "You are the CEO with other team members. Deleting your account will automatically promote another member to CEO.",
+        consequences: [
+          "Your account and profile will be deleted",
+          "CEO role will be transferred to the next senior member",
+          "The organization will continue with the new CEO",
+          "This action cannot be undone"
+        ],
+        icon: User,
+        buttonText: "Delete Account & Transfer CEO"
+      };
+    } else {
+      return {
+        title: "Delete Account",
+        description: "Deleting your account will remove you from the organization.",
+        consequences: [
+          "Your account and profile will be deleted",
+          "You will be removed from the organization",
+          "The organization will continue without you",
+          "This action cannot be undone"
+        ],
+        icon: User,
+        buttonText: "Delete My Account"
+      };
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -342,6 +407,7 @@ const UserProfile = () => {
   }
 
   const isCEO = userData.executive_role === 'CEO';
+  const deletionInfo = getUserDeletionConsequences();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -388,6 +454,10 @@ const UserProfile = () => {
               <div>
                 <label className="text-sm font-medium text-gray-600">Executive Role</label>
                 <p className="text-lg font-semibold text-gray-900">{userData.executive_role}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">Organization Members</label>
+                <p className="text-lg text-gray-900">{organizationUserCount} {organizationUserCount === 1 ? 'member' : 'members'}</p>
               </div>
             </CardContent>
           </Card>
@@ -526,7 +596,7 @@ const UserProfile = () => {
               </AlertDialog>
             </div>
 
-            {/* Delete User Button */}
+            {/* Delete User Button with Enhanced Confirmation */}
             <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
               <div>
                 <h4 className="font-medium text-gray-900">Delete Your Account</h4>
@@ -548,15 +618,20 @@ const UserProfile = () => {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Your Account</AlertDialogTitle>
+                    <AlertDialogTitle className="flex items-center">
+                      {deletionInfo && <deletionInfo.icon className="h-5 w-5 mr-2" />}
+                      {deletionInfo?.title}
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete your account and all associated data including:
-                      <ul className="list-disc ml-6 mt-2 mb-4">
-                        <li>Your profile information</li>
-                        <li>Your chat logs and conversations</li>
-                        <li>Your organization membership</li>
-                      </ul>
-                      <strong>This action cannot be undone.</strong>
+                      {deletionInfo?.description}
+                      <div className="mt-4 mb-4">
+                        <strong>What will happen:</strong>
+                        <ul className="list-disc ml-6 mt-2">
+                          {deletionInfo?.consequences.map((consequence, index) => (
+                            <li key={index}>{consequence}</li>
+                          ))}
+                        </ul>
+                      </div>
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Enter your password to confirm:
@@ -578,7 +653,7 @@ const UserProfile = () => {
                       className="bg-red-600 hover:bg-red-700"
                       disabled={deleteLoading || !deleteUserPassword.trim()}
                     >
-                      {deleteLoading ? "Deleting..." : "Yes, Delete My Account"}
+                      {deleteLoading ? "Deleting..." : deletionInfo?.buttonText}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
