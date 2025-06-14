@@ -155,6 +155,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_organization_audit_log_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "organization_audit_log_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -270,6 +277,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_organizations_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_organizations_organization_id_fkey"
             columns: ["organization_id"]

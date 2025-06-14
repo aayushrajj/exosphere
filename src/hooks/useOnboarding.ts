@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,14 +32,23 @@ export const useOnboarding = () => {
 
   const checkOnboardingStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { needsOnboarding: true, profile: null };
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('Error getting user:', userError);
+        return { needsOnboarding: true, profile: null };
+      }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error checking onboarding status:', profileError);
+        return { needsOnboarding: true, profile: null };
+      }
 
       return {
         needsOnboarding: !profile?.onboarding_completed,
@@ -52,13 +62,18 @@ export const useOnboarding = () => {
 
   const validateOrgCode = async (orgCode: string): Promise<Organization | null> => {
     try {
+      if (!orgCode.trim()) {
+        return null;
+      }
+
       const { data: organization, error } = await supabase
         .from('organizations')
         .select('*')
         .eq('org_code', orgCode.trim())
-        .single();
+        .maybeSingle();
 
-      if (error || !organization) {
+      if (error) {
+        console.error('Error validating org code:', error);
         return null;
       }
 
@@ -80,8 +95,16 @@ export const useOnboarding = () => {
     try {
       console.log('Creating organization with data:', orgData);
 
+      if (!orgData.name.trim()) {
+        toast({
+          title: "Invalid organization name",
+          description: "Organization name cannot be empty.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       // Check if organization with this name already exists
-      console.log('Checking for existing organization with name:', orgData.name.trim());
       const { data: existingOrg, error: checkError } = await supabase
         .from('organizations')
         .select('*')
@@ -108,15 +131,28 @@ export const useOnboarding = () => {
         return null;
       }
 
-      console.log('Organization name is available, creating new organization...');
       const { data: organization, error } = await supabase
         .from('organizations')
-        .insert([orgData])
+        .insert([{
+          name: orgData.name.trim(),
+          founding_year: orgData.founding_year,
+          domain: orgData.domain?.trim() || null,
+          description: orgData.description.trim()
+        }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating organization:', error);
+        toast({
+          title: "Error creating organization",
+          description: error.message || "Failed to create organization. Please try again.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      if (!organization) {
         toast({
           title: "Error creating organization",
           description: "Failed to create organization. Please try again.",
@@ -152,16 +188,30 @@ export const useOnboarding = () => {
       setLoading(true);
       console.log('joinOrganization started with:', { organizationId, userData });
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('No authenticated user found');
-        throw new Error('No authenticated user');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('No authenticated user found:', userError);
+        toast({
+          title: "Authentication error",
+          description: "Please log in again.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (!userData.fullName.trim() || !userData.executiveRole.trim()) {
+        toast({
+          title: "Invalid data",
+          description: "Please fill in all required fields.",
+          variant: "destructive",
+        });
+        return false;
       }
 
       console.log('Current user:', user.id);
 
       // Check if executive role is already taken
-      console.log('Checking if executive role is already taken...');
       const { data: existingRole, error: roleCheckError } = await supabase
         .from('user_organizations')
         .select('*')
@@ -171,7 +221,12 @@ export const useOnboarding = () => {
 
       if (roleCheckError) {
         console.error('Error checking existing role:', roleCheckError);
-        throw roleCheckError;
+        toast({
+          title: "Error checking role availability",
+          description: roleCheckError.message || "Please try again.",
+          variant: "destructive",
+        });
+        return false;
       }
 
       if (existingRole) {
@@ -185,33 +240,45 @@ export const useOnboarding = () => {
       }
 
       console.log('Role is available, updating profile...');
-      // Update profile
+      
+      // Update profile with upsert for safety
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
-          full_name: userData.fullName,
+          full_name: userData.fullName.trim(),
           onboarding_completed: true,
         });
 
       if (profileError) {
         console.error('Error updating profile:', profileError);
-        throw profileError;
+        toast({
+          title: "Error updating profile",
+          description: profileError.message || "Please try again.",
+          variant: "destructive",
+        });
+        return false;
       }
 
       console.log('Profile updated, creating user-organization relationship...');
+      
       // Create user-organization relationship
       const { error: orgError } = await supabase
         .from('user_organizations')
         .insert({
           user_id: user.id,
           organization_id: organizationId,
-          executive_role: userData.executiveRole,
+          executive_role: userData.executiveRole.trim(),
         });
 
       if (orgError) {
         console.error('Error creating user-organization relationship:', orgError);
-        throw orgError;
+        toast({
+          title: "Error joining organization",
+          description: orgError.message || "Please try again.",
+          variant: "destructive",
+        });
+        return false;
       }
 
       console.log('User-organization relationship created successfully');
@@ -237,17 +304,26 @@ export const useOnboarding = () => {
 
   const getUserOrganization = async (): Promise<UserOrganization | null> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('No authenticated user found:', userError);
+        return null;
+      }
 
-      const { data: userOrg } = await supabase
+      const { data: userOrg, error: orgError } = await supabase
         .from('user_organizations')
         .select(`
           *,
           organization:organizations(*)
         `)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (orgError) {
+        console.error('Error getting user organization:', orgError);
+        return null;
+      }
 
       return userOrg;
     } catch (error) {
