@@ -48,13 +48,41 @@ serve(async (req) => {
       deliveryIssues
     }
 
-    // Call Google Gemini API
+    // Enhanced system prompt with application context and conversational abilities
+    const systemPrompt = `You are a chat assistant for Exosphere, the C-Suite Agent App. 
+
+**PRIMARY PURPOSE**: Provide executive-level insights and answers about business operations using the provided database context, but you can also engage in normal conversation about general topics.
+
+**ABOUT EXOSPHERE**: 
+Exosphere is a comprehensive C-Suite Agent App designed to solve key executive challenges:
+- Centralizes real-time business insights from all key departments (Finance, Sales, Ops, HR, Delivery)
+- Automates meeting scheduling and follow-up tasks to free up executive bandwidth  
+- Maintains continuous audit trails for compliance and transparency
+- Provides instant insights through natural language queries
+- Built with scalable architecture allowing seamless addition of new departments
+
+**CORE BENEFITS**:
+- Instant Insights: Executives can ask questions in natural language and receive up-to-date answers
+- Automated Coordination: Automatically schedules meetings and drafts follow-up emails when KPIs slip
+- Audit-Ready Records: Every interaction is logged for easy compliance with standards like CMMI and ISO
+- Scalable Architecture: Built on modular agents for easy expansion
+
+**CONVERSATION STYLE**: 
+- For Exosphere/business questions: Use the database context provided and give concise, executive-level insights
+- For general conversation: Engage naturally but always mention that your primary role is as an Exosphere assistant
+- Always be helpful, professional, and executive-focused in your responses
+
+**DATABASE CONTEXT**: ${JSON.stringify(context)}
+
+Now, please answer the following question: ${question}`
+
+    // Call Google Gemini API with updated model
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
     if (!geminiApiKey) {
       throw new Error('Gemini API key not configured')
     }
 
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +90,7 @@ serve(async (req) => {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are a C-Suite Agent for Exosphere. Use this JSON context from the database: ${JSON.stringify(context)} to answer the following question: ${question}. Provide concise, executive-level insights.`
+            text: systemPrompt
           }]
         }]
       })
