@@ -1,10 +1,13 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,36 +30,56 @@ const Login = () => {
     }
     
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/signup';
-      const response = await fetch(`${SUPABASE_URL}/functions/v1${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({
+      if (isLogin) {
+        // Sign in existing user
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password
-        })
-      });
+        });
 
-      const data = await response.json();
+        if (error) throw error;
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        console.log('Login successful:', data);
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+        navigate('/dashboard');
+      } else {
+        // Sign up new user
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`
+          }
+        });
+
+        if (error) throw error;
+
+        console.log('Signup successful:', data);
+        
+        if (data.user && !data.user.email_confirmed_at) {
+          toast({
+            title: "Check your email",
+            description: "We've sent you a confirmation link to complete your signup.",
+          });
+        } else {
+          toast({
+            title: "Account created!",
+            description: "You have successfully signed up.",
+          });
+          navigate('/dashboard');
+        }
       }
-
-      // Store session in localStorage
-      if (data.session) {
-        localStorage.setItem('supabase.session', JSON.stringify(data.session));
-        localStorage.setItem('supabase.user', JSON.stringify(data.user));
-      }
-
-      console.log('Authentication successful:', data);
-      navigate('/dashboard');
     } catch (err: any) {
       console.error('Auth error:', err);
       setError(err.message || 'Authentication failed');
+      toast({
+        title: "Authentication Error",
+        description: err.message || 'Authentication failed',
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
