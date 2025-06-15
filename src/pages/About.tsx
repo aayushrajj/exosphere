@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -25,7 +24,6 @@ const About = () => {
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
     { name: 'Audit', icon: FileText, path: '/audit', current: false },
-    { name: 'Developer Profile', icon: User, path: '/about-maker', current: false },
     { name: 'About', icon: Info, path: '/about', current: true },
   ];
 
@@ -163,6 +161,25 @@ const About = () => {
                   <h4 className="font-medium text-gray-900 mb-1">Scalable Architecture</h4>
                   <p className="text-gray-700">Built on modular agents, allowing new departments or data sources to be added seamlessly.</p>
                 </div>
+              </div>
+            </div>
+
+            {/* About the Developer section */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">About the Developer</h3>
+                  <p className="text-gray-600 mb-4">
+                    Learn more about the creator of Exosphere and view their professional background.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/about-maker')}
+                  className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  <User className="mr-2 h-5 w-5" />
+                  View Developer Profile
+                </button>
               </div>
             </div>
 
