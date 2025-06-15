@@ -21,12 +21,12 @@ const About = () => {
   
   const navigationItems = [
     { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: false },
-    { name: 'About', icon: Info, path: '/about', current: true },
-    { name: 'About the Maker', icon: User, path: '/about-maker', current: false },
     { name: 'Chat', icon: MessageSquare, path: '/chat', current: false },
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
     { name: 'Audit', icon: FileText, path: '/audit', current: false },
+    { name: 'Developer Profile', icon: User, path: '/about-maker', current: false },
+    { name: 'About', icon: Info, path: '/about', current: true },
   ];
 
   const handleNavigation = (path: string) => {
