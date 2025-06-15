@@ -70,7 +70,7 @@ const YourOrganisation = () => {
             setUserName(firstName);
           }
 
-          // Get user's organization and all executives
+          // Get user's organization
           const { data: userOrg } = await supabase
             .from('user_organizations')
             .select(`
@@ -89,23 +89,33 @@ const YourOrganisation = () => {
               .select(`
                 user_id,
                 executive_role,
-                created_at,
-                profiles!user_organizations_user_id_fkey(full_name)
+                created_at
               `)
               .eq('organization_id', userOrg.organization_id)
               .order('created_at', { ascending: true });
 
             if (executives) {
-              const formattedExecutives = executives.map(exec => ({
-                id: exec.user_id,
-                full_name: exec.profiles.full_name || 'Unknown',
-                executive_role: exec.executive_role,
-                created_at: exec.created_at
-              }));
+              // Fetch profiles separately for each executive
+              const executivesWithProfiles = await Promise.all(
+                executives.map(async (exec) => {
+                  const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name')
+                    .eq('id', exec.user_id)
+                    .single();
+
+                  return {
+                    id: exec.user_id,
+                    full_name: profile?.full_name || 'Unknown',
+                    executive_role: exec.executive_role,
+                    created_at: exec.created_at
+                  };
+                })
+              );
 
               setOrganizationData({
                 name: orgName,
-                executives: formattedExecutives
+                executives: executivesWithProfiles
               });
             }
           }
