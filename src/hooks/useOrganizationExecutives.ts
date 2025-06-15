@@ -21,7 +21,9 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
       }
 
       try {
-        const { data: executivesData } = await supabase
+        console.log('Fetching executives for organization:', organizationId);
+        
+        const { data: executivesData, error } = await supabase
           .from('user_organizations')
           .select(`
             user_id,
@@ -31,25 +33,40 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true });
 
-        if (executivesData) {
+        if (error) {
+          console.error('Error fetching executives data:', error);
+          return;
+        }
+
+        console.log('Raw executives data:', executivesData);
+
+        if (executivesData && executivesData.length > 0) {
           const executivesWithProfiles = await Promise.all(
             executivesData.map(async (exec) => {
-              const { data: profile } = await supabase
+              const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('full_name')
                 .eq('id', exec.user_id)
                 .single();
 
+              if (profileError) {
+                console.error('Error fetching profile for user:', exec.user_id, profileError);
+              }
+
               return {
                 id: exec.user_id,
-                full_name: profile?.full_name || 'Unknown',
+                full_name: profile?.full_name || 'Unknown User',
                 executive_role: exec.executive_role,
                 created_at: exec.created_at
               };
             })
           );
 
+          console.log('Executives with profiles:', executivesWithProfiles);
           setExecutives(executivesWithProfiles);
+        } else {
+          console.log('No executives found for organization');
+          setExecutives([]);
         }
       } catch (error) {
         console.error('Error fetching organization executives:', error);

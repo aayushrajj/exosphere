@@ -58,7 +58,7 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="p-1 touch-target"
+          className="p-1 h-10 w-10 flex items-center justify-center"
           type="button"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -75,19 +75,21 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="orgCode">Organization Code</Label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="orgCode" className="text-sm font-medium">
+            Organization Code
+          </Label>
           <Input
             id="orgCode"
             type="text"
             value={orgCode}
             onChange={(e) => setOrgCode(e.target.value)}
             placeholder="Enter organization code"
-            className="mt-1"
+            className="h-12"
             maxLength={20}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500">
             Ask your organization administrator for the code
           </p>
         </div>
@@ -95,7 +97,7 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
         <Button
           type="submit"
           disabled={loading || !orgCode.trim()}
-          className="w-full h-12 text-base font-medium touch-target"
+          className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white"
         >
           {loading ? 'Validating...' : 'Continue'}
         </Button>

@@ -77,7 +77,7 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="p-1 touch-target"
+          className="p-1 h-10 w-10 flex items-center justify-center"
           type="button"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -94,31 +94,35 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="fullName">Full Name *</Label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="fullName" className="text-sm font-medium">
+            Full Name *
+          </Label>
           <Input
             id="fullName"
             type="text"
             value={formData.fullName}
             onChange={(e) => handleInputChange('fullName', e.target.value)}
             placeholder="Enter your full name"
-            className="mt-1"
+            className="h-12"
             maxLength={50}
             required
           />
         </div>
 
-        <div>
-          <Label htmlFor="executiveRole">Executive Role *</Label>
+        <div className="space-y-2">
+          <Label htmlFor="executiveRole" className="text-sm font-medium">
+            Executive Role *
+          </Label>
           <Select
             value={formData.executiveRole}
             onValueChange={(value) => handleInputChange('executiveRole', value)}
           >
-            <SelectTrigger className="mt-1">
+            <SelectTrigger className="h-12">
               <SelectValue placeholder="Select your role" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-50 bg-white">
               {EXECUTIVE_ROLES.map((role) => (
                 <SelectItem key={role} value={role}>
                   {role}
@@ -131,7 +135,7 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
         <Button
           type="submit"
           disabled={loading || !isFormValid}
-          className="w-full h-12 text-base font-medium touch-target"
+          className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white"
         >
           {loading ? 'Completing Setup...' : 'Complete Setup'}
         </Button>
