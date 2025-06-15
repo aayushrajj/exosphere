@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, LogOut } from 'lucide-react';
@@ -203,7 +202,7 @@ const UserProfile = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">User & Organization Profile</h1>
+            <h1 className="text-2xl font-bold text-gray-900">User Profile</h1>
           </div>
           <Button
             variant="outline"
@@ -224,8 +223,10 @@ const UserProfile = () => {
             organizationUserCount={organizationUserCount}
           />
 
-          {/* Organization Information */}
-          <OrganizationInfoCard organization={userData.organization} />
+          {/* Organization Information - keeping this in the grid for now */}
+          <div>
+            <OrganizationInfoCard organization={userData.organization} />
+          </div>
         </div>
 
         {/* Password Update Section */}
