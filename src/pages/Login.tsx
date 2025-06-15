@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
@@ -101,7 +100,7 @@ const Login = () => {
             <Building2 className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Exosphere</h1>
-          <p className="text-gray-600 mt-2">Your C-Suite Agent Platform</p>
+          <p className="text-gray-600 mt-2">Your C-Suite Intelligent Platform</p>
         </div>
 
         {/* Login/Signup form */}
