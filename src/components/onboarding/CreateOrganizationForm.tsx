@@ -41,12 +41,16 @@ export const CreateOrganizationForm = ({ organizationName, onSuccess, onBack }: 
       return;
     }
 
-    // Create properly typed organization data
+    // Create properly typed organization data with explicit required fields
     const orgData: OrganizationData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
-      ...(formData.founding_year && { founding_year: parseInt(formData.founding_year) })
     };
+
+    // Add optional founding_year if provided
+    if (formData.founding_year) {
+      orgData.founding_year = parseInt(formData.founding_year);
+    }
 
     if (!validateOrganizationData(orgData)) {
       return;
