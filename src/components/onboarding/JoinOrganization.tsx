@@ -22,19 +22,32 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
     e.preventDefault();
     setError('');
 
+    console.log('Join organization form submitted with code:', orgCode);
+
     if (!validateCodeFormat(orgCode)) {
       return;
     }
 
-    const organization = await validateOrgCode(orgCode);
-    if (organization) {
-      // Check member limit before allowing join
-      const canJoin = await validateOrganizationMemberLimit(organization.id);
-      if (canJoin) {
-        onSuccess(organization.id);
+    console.log('Code format validation passed, checking organization...');
+
+    try {
+      const organization = await validateOrgCode(orgCode);
+      if (organization) {
+        console.log('Organization found:', organization);
+        
+        // Check member limit before allowing join
+        const canJoin = await validateOrganizationMemberLimit(organization.id);
+        if (canJoin) {
+          console.log('Member limit check passed, calling onSuccess');
+          onSuccess(organization.id);
+        }
+      } else {
+        console.log('Organization not found for code:', orgCode);
+        setError('Invalid organization code');
       }
-    } else {
-      setError('Invalid organization code');
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      setError('Failed to validate organization code. Please try again.');
     }
   };
 
@@ -45,7 +58,8 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="p-1"
+          className="p-1 touch-target"
+          type="button"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -81,7 +95,7 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
         <Button
           type="submit"
           disabled={loading || !orgCode.trim()}
-          className="w-full"
+          className="w-full h-12 text-base font-medium touch-target"
         >
           {loading ? 'Validating...' : 'Continue'}
         </Button>

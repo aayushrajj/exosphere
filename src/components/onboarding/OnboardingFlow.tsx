@@ -16,24 +16,29 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
 
   const handleOrganizationChoice = (choice: 'join' | 'create') => {
+    console.log('Organization choice selected:', choice);
     setCurrentStep(choice);
   };
 
   const handleJoinSuccess = (organizationId: string) => {
+    console.log('Join success with organization ID:', organizationId);
     setSelectedOrganizationId(organizationId);
     setCurrentStep('userInfo');
   };
 
   const handleCreateSuccess = (organizationId: string) => {
+    console.log('Create success with organization ID:', organizationId);
     setSelectedOrganizationId(organizationId);
     setCurrentStep('userInfo');
   };
 
   const handleUserInfoComplete = () => {
+    console.log('User info complete, calling onComplete');
     onComplete();
   };
 
   const handleBack = () => {
+    console.log('Back button pressed from step:', currentStep);
     if (currentStep === 'join' || currentStep === 'create') {
       setCurrentStep('choice');
     } else if (currentStep === 'userInfo') {
@@ -50,7 +55,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           <p className="text-gray-600 mt-2">Let's get you set up</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
           {currentStep === 'choice' && (
             <OrganizationChoice onChoice={handleOrganizationChoice} />
           )}
