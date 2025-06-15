@@ -21,7 +21,6 @@ export const useAuth = () => {
           if (mounted) {
             setIsAuthenticated(false);
             setLoading(false);
-            navigate('/login');
           }
           return;
         }
@@ -30,7 +29,6 @@ export const useAuth = () => {
           if (mounted) {
             setIsAuthenticated(false);
             setLoading(false);
-            navigate('/login');
           }
           return;
         }
@@ -56,7 +54,10 @@ export const useAuth = () => {
         }
 
         if (mounted) {
-          setNeedsOnboarding(!profile?.onboarding_completed);
+          // If profile exists and onboarding_completed is true, user doesn't need onboarding
+          const needsOnboardingStatus = !profile || !profile.onboarding_completed;
+          console.log('Onboarding status check:', { profile, needsOnboardingStatus });
+          setNeedsOnboarding(needsOnboardingStatus);
           setLoading(false);
         }
       } catch (error) {
@@ -65,7 +66,6 @@ export const useAuth = () => {
           setIsAuthenticated(false);
           setNeedsOnboarding(false);
           setLoading(false);
-          navigate('/login');
         }
       }
     };
@@ -82,7 +82,6 @@ export const useAuth = () => {
           setIsAuthenticated(false);
           setNeedsOnboarding(false);
           setLoading(false);
-          navigate('/login');
           return;
         }
 
@@ -100,7 +99,10 @@ export const useAuth = () => {
             console.error('Profile fetch error on auth change:', profileError);
             setNeedsOnboarding(true);
           } else {
-            setNeedsOnboarding(!profile?.onboarding_completed);
+            // If profile exists and onboarding_completed is true, user doesn't need onboarding
+            const needsOnboardingStatus = !profile || !profile.onboarding_completed;
+            console.log('Onboarding status on auth change:', { profile, needsOnboardingStatus });
+            setNeedsOnboarding(needsOnboardingStatus);
           }
           
           setLoading(false);
