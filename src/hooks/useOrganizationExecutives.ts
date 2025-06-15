@@ -16,6 +16,7 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
   useEffect(() => {
     const fetchExecutives = async () => {
       if (!organizationId) {
+        console.log('No organization ID provided, skipping executives fetch');
         setLoading(false);
         return;
       }
@@ -23,53 +24,60 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
       try {
         console.log('Fetching executives for organization:', organizationId);
         
+        // Get current user for debugging
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('Current user ID:', user?.id);
+
+        // First, let's check what organization relationships exist
+        const { data: allOrgRelationships, error: allOrgError } = await supabase
+          .from('user_organizations')
+          .select('*')
+          .eq('organization_id', organizationId);
+
+        console.log('All organization relationships:', allOrgRelationships);
+        if (allOrgError) {
+          console.error('Error fetching all organization relationships:', allOrgError);
+        }
+
+        // Now fetch the executive data with profiles using a join
         const { data: executivesData, error } = await supabase
           .from('user_organizations')
           .select(`
             user_id,
             executive_role,
-            created_at
+            created_at,
+            profiles!user_organizations_user_id_fkey(
+              full_name
+            )
           `)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true });
 
         if (error) {
           console.error('Error fetching executives data:', error);
+          setExecutives([]);
           return;
         }
 
-        console.log('Raw executives data:', executivesData);
+        console.log('Raw executives data with profiles:', executivesData);
 
         if (executivesData && executivesData.length > 0) {
-          const executivesWithProfiles = await Promise.all(
-            executivesData.map(async (exec) => {
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('full_name')
-                .eq('id', exec.user_id)
-                .single();
+          const formattedExecutives = executivesData.map((exec) => ({
+            id: exec.user_id,
+            full_name: exec.profiles?.full_name || 'Unknown User',
+            executive_role: exec.executive_role,
+            created_at: exec.created_at
+          }));
 
-              if (profileError) {
-                console.error('Error fetching profile for user:', exec.user_id, profileError);
-              }
-
-              return {
-                id: exec.user_id,
-                full_name: profile?.full_name || 'Unknown User',
-                executive_role: exec.executive_role,
-                created_at: exec.created_at
-              };
-            })
-          );
-
-          console.log('Executives with profiles:', executivesWithProfiles);
-          setExecutives(executivesWithProfiles);
+          console.log('Formatted executives:', formattedExecutives);
+          setExecutives(formattedExecutives);
         } else {
           console.log('No executives found for organization');
           setExecutives([]);
         }
       } catch (error) {
         console.error('Error fetching organization executives:', error);
+        setExecutives([]);
       } finally {
         setLoading(false);
       }
