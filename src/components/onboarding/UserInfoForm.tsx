@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOnboardingValidation } from '@/hooks/useOnboardingValidation';
-import { EXECUTIVE_ROLES } from '@/lib/validationSchemas';
+import { EXECUTIVE_ROLES, type ExecutiveRole } from '@/lib/validationSchemas';
 
 interface UserInfoFormProps {
   organizationId: string;
@@ -16,7 +16,10 @@ interface UserInfoFormProps {
 }
 
 export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFormProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    executiveRole: ExecutiveRole | '';
+  }>({
     fullName: '',
     executiveRole: ''
   });
@@ -28,11 +31,22 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
     e.preventDefault();
     setError('');
 
-    if (!validateUserInfo(formData)) {
+    // Ensure executiveRole is properly typed before validation
+    if (!formData.executiveRole) {
+      setError('Please select an executive role');
       return;
     }
 
-    const success = await joinOrganization(organizationId, formData);
+    const userInfoData = {
+      fullName: formData.fullName,
+      executiveRole: formData.executiveRole as ExecutiveRole
+    };
+
+    if (!validateUserInfo(userInfoData)) {
+      return;
+    }
+
+    const success = await joinOrganization(organizationId, userInfoData);
     if (success) {
       onComplete();
     }
@@ -48,7 +62,7 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
   const handleRoleChange = (value: string) => {
     setFormData({
       ...formData,
-      executiveRole: value
+      executiveRole: value as ExecutiveRole
     });
   };
 

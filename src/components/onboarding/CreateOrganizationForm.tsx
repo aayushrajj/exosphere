@@ -36,15 +36,16 @@ export const CreateOrganizationForm = ({ organizationName, onSuccess, onBack }: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Ensure required fields are present and properly typed
+    // Ensure required fields are present with proper validation
     if (!formData.name.trim() || !formData.description.trim()) {
       return;
     }
 
+    // Create properly typed organization data
     const orgData: OrganizationData = {
       name: formData.name.trim(),
-      founding_year: formData.founding_year ? parseInt(formData.founding_year) : undefined,
-      description: formData.description.trim()
+      description: formData.description.trim(),
+      ...(formData.founding_year && { founding_year: parseInt(formData.founding_year) })
     };
 
     if (!validateOrganizationData(orgData)) {
