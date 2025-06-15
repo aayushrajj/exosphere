@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganizationChanges } from '@/hooks/useOrganizationChanges';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -17,6 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, needsOnboarding, loading } = useAuth();
   const { getUserOrganization } = useOnboarding();
   const [organizationId, setOrganizationId] = React.useState<string>();
+  const location = useLocation();
 
   // Use organization changes hook if user has an organization
   useOrganizationChanges(organizationId);
@@ -48,14 +49,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
+  // If user has completed onboarding but is trying to access onboarding page, redirect to dashboard
+  if (!needsOnboarding && location.pathname === '/onboarding') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Redirect to onboarding if user needs onboarding and route requires it
   if (needsOnboarding && requiresOnboarding) {
     return <Navigate to="/onboarding" replace />;
-  }
-
-  // Redirect to dashboard if user has completed onboarding but is on onboarding page
-  if (!needsOnboarding && window.location.pathname === '/onboarding') {
-    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
