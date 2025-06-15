@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ArrowLeft, Copy, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,7 +40,7 @@ export const CreateOrganizationForm = ({ organizationName, onSuccess, onBack }: 
       return;
     }
 
-    // Create properly typed organization data with explicit required fields
+    // Create properly typed organization data for validation
     const orgData: OrganizationData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
@@ -56,7 +55,14 @@ export const CreateOrganizationForm = ({ organizationName, onSuccess, onBack }: 
       return;
     }
 
-    const organization = await createOrganization(orgData);
+    // Create the data structure expected by createOrganization
+    const orgCreationData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      ...(formData.founding_year && { founding_year: parseInt(formData.founding_year) })
+    };
+
+    const organization = await createOrganization(orgCreationData);
     if (organization) {
       setCreatedOrg(organization);
     }
