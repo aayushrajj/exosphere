@@ -14,54 +14,72 @@ export const useAuth = () => {
 
     const checkAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('Checking authentication status...');
         
-        if (error) {
-          console.error('Auth session error:', error);
+        // First check for existing session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
           if (mounted) {
             setIsAuthenticated(false);
+            setNeedsOnboarding(false);
             setLoading(false);
           }
           return;
         }
 
-        if (!session) {
+        // If no session, user is not authenticated
+        if (!session?.user) {
+          console.log('No active session found');
           if (mounted) {
             setIsAuthenticated(false);
+            setNeedsOnboarding(false);
             setLoading(false);
           }
           return;
         }
 
+        console.log('Active session found for user:', session.user.id);
+        
+        // User has valid session
         if (mounted) {
           setIsAuthenticated(true);
         }
         
-        // Check if user needs onboarding
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('id', session.user.id)
-          .maybeSingle();
+        // Check onboarding status
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', session.user.id)
+            .maybeSingle();
 
-        if (profileError) {
-          console.error('Profile fetch error:', profileError);
+          if (profileError) {
+            console.error('Profile fetch error:', profileError);
+            // If we can't fetch profile, assume onboarding is needed
+            if (mounted) {
+              setNeedsOnboarding(true);
+              setLoading(false);
+            }
+            return;
+          }
+
+          if (mounted) {
+            const needsOnboardingStatus = !profile || !profile.onboarding_completed;
+            console.log('Onboarding check:', { profile, needsOnboardingStatus });
+            setNeedsOnboarding(needsOnboardingStatus);
+            setLoading(false);
+          }
+        } catch (profileCheckError) {
+          console.error('Profile check failed:', profileCheckError);
           if (mounted) {
             setNeedsOnboarding(true);
             setLoading(false);
           }
-          return;
-        }
-
-        if (mounted) {
-          // If profile exists and onboarding_completed is true, user doesn't need onboarding
-          const needsOnboardingStatus = !profile || !profile.onboarding_completed;
-          console.log('Onboarding status check:', { profile, needsOnboardingStatus });
-          setNeedsOnboarding(needsOnboardingStatus);
-          setLoading(false);
         }
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Auth check failed:', error);
         if (mounted) {
           setIsAuthenticated(false);
           setNeedsOnboarding(false);
@@ -70,15 +88,18 @@ export const useAuth = () => {
       }
     };
 
+    // Initial auth check
     checkAuth();
 
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      console.log('Auth state changed:', event, session?.user?.id);
+      console.log('Auth state changed:', event);
 
       try {
-        if (event === 'SIGNED_OUT' || !session) {
+        if (event === 'SIGNED_OUT' || !session?.user) {
+          console.log('User signed out or session ended');
           setIsAuthenticated(false);
           setNeedsOnboarding(false);
           setLoading(false);
@@ -86,23 +107,28 @@ export const useAuth = () => {
         }
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log('User signed in or token refreshed');
           setIsAuthenticated(true);
           
-          // Check onboarding status
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('onboarding_completed')
-            .eq('id', session.user.id)
-            .maybeSingle();
+          // Check onboarding status for signed in user
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('onboarding_completed')
+              .eq('id', session.user.id)
+              .maybeSingle();
 
-          if (profileError) {
-            console.error('Profile fetch error on auth change:', profileError);
+            if (profileError) {
+              console.error('Profile fetch error on auth change:', profileError);
+              setNeedsOnboarding(true);
+            } else {
+              const needsOnboardingStatus = !profile || !profile.onboarding_completed;
+              console.log('Onboarding status on auth change:', { profile, needsOnboardingStatus });
+              setNeedsOnboarding(needsOnboardingStatus);
+            }
+          } catch (profileError) {
+            console.error('Profile check failed on auth change:', profileError);
             setNeedsOnboarding(true);
-          } else {
-            // If profile exists and onboarding_completed is true, user doesn't need onboarding
-            const needsOnboardingStatus = !profile || !profile.onboarding_completed;
-            console.log('Onboarding status on auth change:', { profile, needsOnboardingStatus });
-            setNeedsOnboarding(needsOnboardingStatus);
           }
           
           setLoading(false);
@@ -115,9 +141,20 @@ export const useAuth = () => {
       }
     });
 
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth check timeout - defaulting to unauthenticated');
+        setIsAuthenticated(false);
+        setNeedsOnboarding(false);
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(timeoutId);
     };
   }, [navigate]);
 

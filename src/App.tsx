@@ -44,7 +44,10 @@ const App: React.FC = () => {
         <BrowserRouter>
           <div className="min-h-screen">
             <Routes>
+              {/* Root route - redirect to dashboard */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              
+              {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/email-confirmation" element={<EmailConfirmation />} />
               
