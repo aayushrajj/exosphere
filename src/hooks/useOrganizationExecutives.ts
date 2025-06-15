@@ -39,16 +39,13 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
           console.error('Error fetching all organization relationships:', allOrgError);
         }
 
-        // Now fetch the executive data with profiles using a join
+        // Fetch the executive data first, then get profiles separately
         const { data: executivesData, error } = await supabase
           .from('user_organizations')
           .select(`
             user_id,
             executive_role,
-            created_at,
-            profiles!user_organizations_user_id_fkey(
-              full_name
-            )
+            created_at
           `)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true });
@@ -59,15 +56,30 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
           return;
         }
 
-        console.log('Raw executives data with profiles:', executivesData);
+        console.log('Raw executives data:', executivesData);
 
         if (executivesData && executivesData.length > 0) {
-          const formattedExecutives = executivesData.map((exec) => ({
-            id: exec.user_id,
-            full_name: exec.profiles?.full_name || 'Unknown User',
-            executive_role: exec.executive_role,
-            created_at: exec.created_at
-          }));
+          // Now fetch profiles for each user
+          const formattedExecutives = await Promise.all(
+            executivesData.map(async (exec) => {
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', exec.user_id)
+                .single();
+
+              if (profileError) {
+                console.error('Error fetching profile for user:', exec.user_id, profileError);
+              }
+
+              return {
+                id: exec.user_id,
+                full_name: profile?.full_name || 'Unknown User',
+                executive_role: exec.executive_role,
+                created_at: exec.created_at
+              };
+            })
+          );
 
           console.log('Formatted executives:', formattedExecutives);
           setExecutives(formattedExecutives);
