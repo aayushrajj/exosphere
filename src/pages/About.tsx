@@ -166,21 +166,17 @@ const About = () => {
 
             {/* About the Developer section */}
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">About the Developer</h3>
-                  <p className="text-gray-600 mb-4">
-                    Learn more about the creator of Exosphere and view their professional background.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/about-maker')}
-                  className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  <User className="mr-2 h-5 w-5" />
-                  View Developer Profile
-                </button>
-              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">About the Developer</h3>
+              <p className="text-gray-600 mb-4">
+                Learn more about the creator of Exosphere.
+              </p>
+              <button
+                onClick={() => navigate('/about-maker')}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-colors"
+              >
+                <User className="mr-2 h-4 w-4" />
+                About the Developer
+              </button>
             </div>
 
             {/* Footer signature */}
