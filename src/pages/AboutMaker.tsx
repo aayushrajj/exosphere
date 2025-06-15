@@ -23,12 +23,12 @@ const AboutMaker = () => {
 
   const navigationItems = [
     { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: false },
-    { name: 'About', icon: Info, path: '/about', current: false },
-    { name: 'About the Maker', icon: User, path: '/about-maker', current: true },
     { name: 'Chat', icon: MessageSquare, path: '/chat', current: false },
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
     { name: 'Audit', icon: FileText, path: '/audit', current: false },
+    { name: 'Developer Profile', icon: User, path: '/about-maker', current: true },
+    { name: 'About', icon: Info, path: '/about', current: false },
   ];
 
   const handleNavigation = (path: string) => {
@@ -101,7 +101,7 @@ const AboutMaker = () => {
               <Menu className="h-5 w-5" />
             </button>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">About the Maker</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Developer Profile</h2>
               <p className="text-sm text-gray-600">Ayush Raj</p>
             </div>
             <div className="text-sm text-gray-500">
@@ -115,7 +115,7 @@ const AboutMaker = () => {
           </div>
         </div>
 
-        {/* About the Maker content */}
+        {/* Developer Profile content */}
         <div className="px-4 py-6 sm:px-6 space-y-6">
           {/* Bio section */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
@@ -141,13 +141,23 @@ const AboutMaker = () => {
               </div>
               <div className="flex items-center">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                <a href="#" className="text-blue-600 hover:text-blue-700">
+                <a 
+                  href="http://www.linkedin.com/in/ayush-raj-0309" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   LinkedIn Profile
                 </a>
               </div>
               <div className="flex items-center">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                <a href="#" className="text-blue-600 hover:text-blue-700">
+                <a 
+                  href="https://github.com/aayushrajj" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   GitHub Profile
                 </a>
               </div>
