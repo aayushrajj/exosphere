@@ -17,6 +17,7 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
     const fetchExecutives = async () => {
       if (!organizationId) {
         console.log('No organization ID provided, skipping executives fetch');
+        setExecutives([]);
         setLoading(false);
         return;
       }
@@ -28,18 +29,36 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
         const { data: { user } } = await supabase.auth.getUser();
         console.log('Current user ID:', user?.id);
 
-        // First, let's check what organization relationships exist
-        const { data: allOrgRelationships, error: allOrgError } = await supabase
-          .from('user_organizations')
-          .select('*')
-          .eq('organization_id', organizationId);
-
-        console.log('All organization relationships:', allOrgRelationships);
-        if (allOrgError) {
-          console.error('Error fetching all organization relationships:', allOrgError);
+        if (!user) {
+          console.log('No authenticated user found');
+          setExecutives([]);
+          setLoading(false);
+          return;
         }
 
-        // Fetch the executive data first, then get profiles separately
+        // First verify the user belongs to this organization
+        const { data: userOrgCheck, error: userOrgError } = await supabase
+          .from('user_organizations')
+          .select('user_id')
+          .eq('organization_id', organizationId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (userOrgError) {
+          console.error('Error checking user organization membership:', userOrgError);
+          setExecutives([]);
+          setLoading(false);
+          return;
+        }
+
+        if (!userOrgCheck) {
+          console.log('User is not a member of this organization');
+          setExecutives([]);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch the executive data
         const { data: executivesData, error } = await supabase
           .from('user_organizations')
           .select(`
@@ -53,6 +72,7 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
         if (error) {
           console.error('Error fetching executives data:', error);
           setExecutives([]);
+          setLoading(false);
           return;
         }
 
@@ -66,7 +86,7 @@ export const useOrganizationExecutives = (organizationId: string | null) => {
                 .from('profiles')
                 .select('full_name')
                 .eq('id', exec.user_id)
-                .single();
+                .maybeSingle();
 
               if (profileError) {
                 console.error('Error fetching profile for user:', exec.user_id, profileError);

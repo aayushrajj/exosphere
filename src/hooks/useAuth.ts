@@ -47,15 +47,15 @@ export const useAuth = () => {
           setIsAuthenticated(true);
         }
         
-        // Check onboarding status
+        // Check onboarding status with proper error handling
         try {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('onboarding_completed')
             .eq('id', session.user.id)
-            .maybeSingle();
+            .maybeSingle(); // Use maybeSingle to avoid errors when no profile exists
 
-          if (profileError) {
+          if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "not found" which is okay
             console.error('Profile fetch error:', profileError);
             // If we can't fetch profile, assume onboarding is needed
             if (mounted) {
@@ -118,7 +118,7 @@ export const useAuth = () => {
               .eq('id', session.user.id)
               .maybeSingle();
 
-            if (profileError) {
+            if (profileError && profileError.code !== 'PGRST116') {
               console.error('Profile fetch error on auth change:', profileError);
               setNeedsOnboarding(true);
             } else {
@@ -156,7 +156,7 @@ export const useAuth = () => {
       subscription.unsubscribe();
       clearTimeout(timeoutId);
     };
-  }, [navigate]);
+  }, []);
 
   return { isAuthenticated, needsOnboarding, loading };
 };
