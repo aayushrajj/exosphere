@@ -11,7 +11,8 @@ import {
   TrendingUp,
   Info,
   User,
-  Settings
+  Settings,
+  Building2
 } from 'lucide-react';
 
 const About = () => {
@@ -25,6 +26,7 @@ const About = () => {
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
     { name: 'Audit', icon: FileText, path: '/audit', current: false },
+    { name: 'Your Organisation', icon: Building2, path: '/your-organisation', current: false },
     { name: 'About', icon: Info, path: '/about', current: true },
   ];
 

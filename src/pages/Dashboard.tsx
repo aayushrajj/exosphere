@@ -11,7 +11,8 @@ import {
   Clock,
   Users,
   Info,
-  Settings
+  Settings,
+  Building2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -63,6 +64,7 @@ const Dashboard = () => {
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
     { name: 'Audit', icon: FileText, path: '/audit', current: false },
+    { name: 'Your Organisation', icon: Building2, path: '/your-organisation', current: false },
     { name: 'About', icon: Info, path: '/about', current: false },
   ];
 

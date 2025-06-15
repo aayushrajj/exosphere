@@ -15,6 +15,7 @@ import Chat from "./pages/Chat";
 import Scheduler from "./pages/Scheduler";
 import Emails from "./pages/Emails";
 import Audit from "./pages/Audit";
+import YourOrganisation from "./pages/YourOrganisation";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import Onboarding from "./pages/Onboarding";
 import UserProfile from "./pages/UserProfile";
@@ -119,6 +120,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <Audit />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/your-organisation" 
+                element={
+                  <ProtectedRoute>
+                    <YourOrganisation />
                   </ProtectedRoute>
                 } 
               />
