@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, LogOut } from 'lucide-react';
@@ -8,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOrganizationChanges } from '@/hooks/useOrganizationChanges';
 import UserInfoCard from '@/components/profile/UserInfoCard';
 import OrganizationInfoCard from '@/components/profile/OrganizationInfoCard';
+import OrganizationAboutCard from '@/components/profile/OrganizationAboutCard';
 import PasswordUpdateCard from '@/components/profile/PasswordUpdateCard';
 import DangerZoneCard from '@/components/profile/DangerZoneCard';
 
@@ -217,7 +217,7 @@ const UserProfile = () => {
         </div>
 
         <div className="space-y-6">
-          {/* User Information and Organization Information in grid */}
+          {/* User Information and Organization Information in 2-column grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <UserInfoCard
               fullName={userData.full_name}
@@ -225,11 +225,11 @@ const UserProfile = () => {
               organizationUserCount={organizationUserCount}
             />
             
-            {/* Only the organization basic info, About section will be separate */}
-            <div>
-              <OrganizationInfoCard organization={userData.organization} />
-            </div>
+            <OrganizationInfoCard organization={userData.organization} />
           </div>
+
+          {/* About the Organization - Full width */}
+          <OrganizationAboutCard description={userData.organization.description} />
 
           {/* Password Update Section */}
           <PasswordUpdateCard />
