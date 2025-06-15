@@ -298,6 +298,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_organization_name_exists: {
+        Args: { org_name: string }
+        Returns: boolean
+      }
       delete_organization: {
         Args: { org_id: string }
         Returns: undefined
@@ -309,6 +313,10 @@ export type Database = {
       get_next_ceo_candidate: {
         Args: { org_id: string }
         Returns: string
+      }
+      get_organization_member_count: {
+        Args: { org_id: string }
+        Returns: number
       }
       get_recent_organization_changes: {
         Args: { org_id: string; since_timestamp?: string }

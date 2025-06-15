@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useOnboardingValidation } from '@/hooks/useOnboardingValidation';
 
 interface JoinOrganizationProps {
   onSuccess: (organizationId: string) => void;
@@ -15,19 +16,23 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
   const [orgCode, setOrgCode] = useState('');
   const [error, setError] = useState('');
   const { loading, validateOrgCode } = useOnboarding();
+  const { validateOrgCode: validateCodeFormat, validateOrganizationMemberLimit } = useOnboardingValidation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!orgCode.trim()) {
-      setError('Please enter an organization code');
+    if (!validateCodeFormat(orgCode)) {
       return;
     }
 
     const organization = await validateOrgCode(orgCode);
     if (organization) {
-      onSuccess(organization.id);
+      // Check member limit before allowing join
+      const canJoin = await validateOrganizationMemberLimit(organization.id);
+      if (canJoin) {
+        onSuccess(organization.id);
+      }
     } else {
       setError('Invalid organization code');
     }
@@ -66,12 +71,16 @@ export const JoinOrganization = ({ onSuccess, onBack }: JoinOrganizationProps) =
             onChange={(e) => setOrgCode(e.target.value)}
             placeholder="Enter organization code"
             className="mt-1"
+            maxLength={20}
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Ask your organization administrator for the code
+          </p>
         </div>
 
         <Button
           type="submit"
-          disabled={loading}
+          disabled={loading || !orgCode.trim()}
           className="w-full"
         >
           {loading ? 'Validating...' : 'Continue'}

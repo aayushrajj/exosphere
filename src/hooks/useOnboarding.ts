@@ -87,7 +87,6 @@ export const useOnboarding = () => {
   const createOrganization = async (orgData: {
     name: string;
     founding_year?: number;
-    domain?: string;
     description: string;
   }): Promise<Organization | null> => {
     setLoading(true);
@@ -104,39 +103,11 @@ export const useOnboarding = () => {
         return null;
       }
 
-      // Check if organization with this name already exists
-      const { data: existingOrg, error: checkError } = await supabase
-        .from('organizations')
-        .select('*')
-        .eq('name', orgData.name.trim())
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking existing organization:', checkError);
-        toast({
-          title: "Error checking organization",
-          description: "Failed to check if organization exists. Please try again.",
-          variant: "destructive",
-        });
-        return null;
-      }
-
-      if (existingOrg) {
-        console.log('Organization with this name already exists:', existingOrg);
-        toast({
-          title: "Organization name already taken",
-          description: "An organization with this name already exists. Please choose a different name.",
-          variant: "destructive",
-        });
-        return null;
-      }
-
       const { data: organization, error } = await supabase
         .from('organizations')
         .insert([{
           name: orgData.name.trim(),
           founding_year: orgData.founding_year,
-          domain: orgData.domain?.trim() || null,
           description: orgData.description.trim()
         }])
         .select()
@@ -211,32 +182,34 @@ export const useOnboarding = () => {
 
       console.log('Current user:', user.id);
 
-      // Check if executive role is already taken
-      const { data: existingRole, error: roleCheckError } = await supabase
-        .from('user_organizations')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .eq('executive_role', userData.executiveRole.trim())
-        .maybeSingle();
+      // Check if executive role is already taken (except for Guest role)
+      if (userData.executiveRole !== 'Guest') {
+        const { data: existingRole, error: roleCheckError } = await supabase
+          .from('user_organizations')
+          .select('*')
+          .eq('organization_id', organizationId)
+          .eq('executive_role', userData.executiveRole.trim())
+          .maybeSingle();
 
-      if (roleCheckError) {
-        console.error('Error checking existing role:', roleCheckError);
-        toast({
-          title: "Error checking role availability",
-          description: roleCheckError.message || "Please try again.",
-          variant: "destructive",
-        });
-        return false;
-      }
+        if (roleCheckError) {
+          console.error('Error checking existing role:', roleCheckError);
+          toast({
+            title: "Error checking role availability",
+            description: roleCheckError.message || "Please try again.",
+            variant: "destructive",
+          });
+          return false;
+        }
 
-      if (existingRole) {
-        console.log('Role already exists:', existingRole);
-        toast({
-          title: "Role already assigned",
-          description: "This executive role is already assigned in your organization.",
-          variant: "destructive",
-        });
-        return false;
+        if (existingRole) {
+          console.log('Role already exists:', existingRole);
+          toast({
+            title: "Role already assigned",
+            description: "This executive role is already assigned in your organization. Please choose a different role.",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
 
       console.log('Role is available, updating profile...');

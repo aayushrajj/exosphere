@@ -4,7 +4,10 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useOnboardingValidation } from '@/hooks/useOnboardingValidation';
+import { EXECUTIVE_ROLES, type ExecutiveRole } from '@/lib/validationSchemas';
 
 interface UserInfoFormProps {
   organizationId: string;
@@ -15,12 +18,10 @@ interface UserInfoFormProps {
 export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFormProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
-    executiveRole: ''
+    executiveRole: '' as ExecutiveRole | ''
   });
-  const [error, setError] = useState('');
   const { loading, joinOrganization } = useOnboarding();
-
-  console.log('UserInfoForm rendered with organizationId:', organizationId);
+  const { validateUserInfo } = useOnboardingValidation();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -29,42 +30,40 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
     });
   };
 
+  const handleRoleChange = (value: ExecutiveRole) => {
+    setFormData({
+      ...formData,
+      executiveRole: value
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
-    console.log('Form submitted with data:', formData);
-    console.log('Organization ID:', organizationId);
+    if (!formData.executiveRole) {
+      return;
+    }
 
-    if (!formData.fullName.trim() || !formData.executiveRole.trim()) {
-      setError('Please fill in all required fields');
+    const userData = {
+      fullName: formData.fullName.trim(),
+      executiveRole: formData.executiveRole
+    };
+
+    if (!validateUserInfo(userData)) {
       return;
     }
 
     if (!organizationId) {
-      setError('Organization ID is missing');
       return;
     }
 
     try {
-      console.log('Calling joinOrganization...');
-      const success = await joinOrganization(organizationId, {
-        fullName: formData.fullName.trim(),
-        executiveRole: formData.executiveRole.trim()
-      });
-
-      console.log('joinOrganization result:', success);
-
+      const success = await joinOrganization(organizationId, userData);
       if (success) {
-        console.log('Success! Calling onComplete...');
         onComplete();
-      } else {
-        console.log('joinOrganization returned false');
-        setError('Failed to complete setup. Please try again.');
       }
     } catch (err) {
       console.error('Error in handleSubmit:', err);
-      setError('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -85,12 +84,6 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
         </div>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {error}
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label htmlFor="fullName">Full Name *</Label>
@@ -103,29 +96,32 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
             placeholder="Enter your full name"
             className="mt-1"
             required
+            maxLength={50}
           />
         </div>
 
         <div>
           <Label htmlFor="executiveRole">Executive Role *</Label>
-          <Input
-            id="executiveRole"
-            name="executiveRole"
-            type="text"
-            value={formData.executiveRole}
-            onChange={handleInputChange}
-            placeholder="e.g. CEO, CTO, CFO"
-            className="mt-1"
-            required
-          />
+          <Select value={formData.executiveRole} onValueChange={handleRoleChange}>
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select your role" />
+            </SelectTrigger>
+            <SelectContent>
+              {EXECUTIVE_ROLES.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-gray-500 mt-1">
-            This role must be unique within your organization
+            Select the role that best describes your position in the organization
           </p>
         </div>
 
         <Button
           type="submit"
-          disabled={loading || !formData.fullName.trim() || !formData.executiveRole.trim()}
+          disabled={loading || !formData.fullName.trim() || !formData.executiveRole}
           className="w-full"
         >
           {loading ? 'Completing Setup...' : 'Complete Setup'}
