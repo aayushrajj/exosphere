@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOnboardingValidation } from '@/hooks/useOnboardingValidation';
-import { EXECUTIVE_ROLES, type ExecutiveRole } from '@/lib/validationSchemas';
+import { EXECUTIVE_ROLES } from '@/lib/validationSchemas';
 
 interface UserInfoFormProps {
   organizationId: string;
@@ -18,10 +18,25 @@ interface UserInfoFormProps {
 export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFormProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
-    executiveRole: '' as ExecutiveRole | ''
+    executiveRole: ''
   });
+  const [error, setError] = useState('');
   const { loading, joinOrganization } = useOnboarding();
   const { validateUserInfo } = useOnboardingValidation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!validateUserInfo(formData)) {
+      return;
+    }
+
+    const success = await joinOrganization(organizationId, formData);
+    if (success) {
+      onComplete();
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -30,41 +45,11 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
     });
   };
 
-  const handleRoleChange = (value: ExecutiveRole) => {
+  const handleRoleChange = (value: string) => {
     setFormData({
       ...formData,
       executiveRole: value
     });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.executiveRole) {
-      return;
-    }
-
-    const userData = {
-      fullName: formData.fullName.trim(),
-      executiveRole: formData.executiveRole
-    };
-
-    if (!validateUserInfo(userData)) {
-      return;
-    }
-
-    if (!organizationId) {
-      return;
-    }
-
-    try {
-      const success = await joinOrganization(organizationId, userData);
-      if (success) {
-        onComplete();
-      }
-    } catch (err) {
-      console.error('Error in handleSubmit:', err);
-    }
   };
 
   return (
@@ -79,10 +64,16 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Your Information</h2>
-          <p className="text-gray-600">Complete your profile</p>
+          <h2 className="text-2xl font-bold text-gray-900">Complete Your Profile</h2>
+          <p className="text-gray-600">Tell us about yourself</p>
         </div>
       </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -115,7 +106,7 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
             </SelectContent>
           </Select>
           <p className="text-xs text-gray-500 mt-1">
-            Select the role that best describes your position in the organization
+            Choose your executive role within the organization
           </p>
         </div>
 
