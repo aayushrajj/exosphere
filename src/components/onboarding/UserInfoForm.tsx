@@ -49,7 +49,13 @@ export const UserInfoForm = ({ organizationId, onComplete, onBack }: UserInfoFor
     console.log('Validation passed, attempting to join organization...');
 
     try {
-      const success = await joinOrganization(organizationId, formData);
+      // Ensure we have the required fields before calling joinOrganization
+      const userData = {
+        fullName: formData.fullName.trim(),
+        executiveRole: formData.executiveRole
+      };
+      
+      const success = await joinOrganization(organizationId, userData);
       if (success) {
         console.log('Successfully joined organization, calling onComplete');
         onComplete();
