@@ -223,10 +223,8 @@ const UserProfile = () => {
             organizationUserCount={organizationUserCount}
           />
 
-          {/* Organization Information - keeping this in the grid for now */}
-          <div>
-            <OrganizationInfoCard organization={userData.organization} />
-          </div>
+          {/* Organization Information */}
+          <OrganizationInfoCard organization={userData.organization} />
         </div>
 
         {/* Password Update Section */}

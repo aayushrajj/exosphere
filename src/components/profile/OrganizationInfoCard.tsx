@@ -87,7 +87,7 @@ const OrganizationInfoCard: React.FC<OrganizationInfoCardProps> = ({ organizatio
         </CardContent>
       </Card>
 
-      <Card className="mt-6 col-span-full">
+      <Card className="mt-6">
         <CardHeader>
           <CardTitle>About the Organization</CardTitle>
         </CardHeader>
