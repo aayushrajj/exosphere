@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -103,10 +102,9 @@ const AboutMaker = () => {
             <div className="flex items-center">
               <button
                 onClick={() => navigate('/about')}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors mr-4"
+                className="flex items-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors mr-4"
               >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to About
+                <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Developer Profile</h2>
