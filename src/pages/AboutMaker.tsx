@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -27,7 +26,6 @@ const AboutMaker = () => {
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
     { name: 'Audit', icon: FileText, path: '/audit', current: false },
-    { name: 'Developer Profile', icon: User, path: '/about-maker', current: true },
     { name: 'About', icon: Info, path: '/about', current: false },
   ];
 

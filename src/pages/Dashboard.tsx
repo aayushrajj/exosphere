@@ -11,7 +11,6 @@ import {
   Clock,
   Users,
   Info,
-  User,
   Settings
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,7 +63,6 @@ const Dashboard = () => {
     { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: false },
     { name: 'Emails', icon: Mail, path: '/emails', current: false },
     { name: 'Audit', icon: FileText, path: '/audit', current: false },
-    { name: 'Developer Profile', icon: User, path: '/about-maker', current: false },
     { name: 'About', icon: Info, path: '/about', current: false },
   ];
 
