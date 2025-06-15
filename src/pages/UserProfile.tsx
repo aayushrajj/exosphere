@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Copy, Building2, User, Calendar, Globe, LogOut, Trash2, AlertTriangle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,9 +39,16 @@ const UserProfile = () => {
   const [userData, setUserData] = useState<UserOrganizationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [passwordUpdateLoading, setPasswordUpdateLoading] = useState(false);
   const [deleteOrgPassword, setDeleteOrgPassword] = useState('');
   const [deleteUserPassword, setDeleteUserPassword] = useState('');
   const [organizationUserCount, setOrganizationUserCount] = useState(0);
+  
+  // Password update form state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswordUpdate, setShowPasswordUpdate] = useState(false);
 
   // Use the organization changes hook for notifications
   useOrganizationChanges(userData?.organization.id);
@@ -155,6 +163,101 @@ const UserProfile = () => {
         title: "Copied!",
         description: "Organization code copied to clipboard",
       });
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill in all password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "New password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPasswordUpdateLoading(true);
+    
+    try {
+      // First verify the current password by attempting to sign in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        toast({
+          title: "Error",
+          description: "Unable to verify user credentials.",
+          variant: "destructive",
+        });
+        setPasswordUpdateLoading(false);
+        return;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        toast({
+          title: "Error",
+          description: "Current password is incorrect. Please try again.",
+          variant: "destructive",
+        });
+        setCurrentPassword('');
+        setPasswordUpdateLoading(false);
+        return;
+      }
+
+      // If current password is correct, update to new password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        console.error('Password update error:', updateError);
+        toast({
+          title: "Error",
+          description: "Failed to update password. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Password updated successfully.",
+        });
+        // Clear form
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setShowPasswordUpdate(false);
+      }
+    } catch (error) {
+      console.error('Unexpected password update error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while updating password.",
+        variant: "destructive",
+      });
+    } finally {
+      setPasswordUpdateLoading(false);
     }
   };
 
@@ -526,6 +629,91 @@ const UserProfile = () => {
           </CardHeader>
           <CardContent>
             <p className="text-gray-700 leading-relaxed">{userData.organization.description}</p>
+          </CardContent>
+        </Card>
+
+        {/* Password Update Section */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Lock className="h-5 w-5 mr-2" />
+              Account Security
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!showPasswordUpdate ? (
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900">Password</h4>
+                  <p className="text-sm text-gray-600">
+                    Update your account password to keep your account secure
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPasswordUpdate(true)}
+                  className="flex items-center"
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Change Password
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowPasswordUpdate(false);
+                      setCurrentPassword('');
+                      setNewPassword('');
+                      setConfirmPassword('');
+                    }}
+                    disabled={passwordUpdateLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handlePasswordUpdate}
+                    disabled={passwordUpdateLoading}
+                  >
+                    {passwordUpdateLoading ? "Updating..." : "Update Password"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
