@@ -30,7 +30,7 @@ const OrganizationInfoCard: React.FC<OrganizationInfoCardProps> = ({ organizatio
   };
 
   return (
-    <>
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -87,7 +87,7 @@ const OrganizationInfoCard: React.FC<OrganizationInfoCardProps> = ({ organizatio
         </CardContent>
       </Card>
 
-      <Card className="mt-6">
+      <Card className="col-span-full">
         <CardHeader>
           <CardTitle>About the Organization</CardTitle>
         </CardHeader>
@@ -95,7 +95,7 @@ const OrganizationInfoCard: React.FC<OrganizationInfoCardProps> = ({ organizatio
           <p className="text-gray-700 leading-relaxed">{organization.description}</p>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 };
 

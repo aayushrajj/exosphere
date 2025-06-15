@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, LogOut } from 'lucide-react';
@@ -215,25 +216,25 @@ const UserProfile = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* User Information */}
-          <UserInfoCard
-            fullName={userData.full_name}
-            executiveRole={userData.executive_role}
-            organizationUserCount={organizationUserCount}
-          />
+        <div className="space-y-6">
+          {/* User Information and Organization Information in grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <UserInfoCard
+              fullName={userData.full_name}
+              executiveRole={userData.executive_role}
+              organizationUserCount={organizationUserCount}
+            />
+            
+            {/* Only the organization basic info, About section will be separate */}
+            <div>
+              <OrganizationInfoCard organization={userData.organization} />
+            </div>
+          </div>
 
-          {/* Organization Information */}
-          <OrganizationInfoCard organization={userData.organization} />
-        </div>
-
-        {/* Password Update Section */}
-        <div className="mt-6">
+          {/* Password Update Section */}
           <PasswordUpdateCard />
-        </div>
 
-        {/* Danger Zone */}
-        <div className="mt-6">
+          {/* Danger Zone */}
           <DangerZoneCard
             isCEO={isCEO}
             organizationName={userData.organization.name}
