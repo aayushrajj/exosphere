@@ -1,24 +1,7 @@
 
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  MessageSquare, 
-  Calendar, 
-  Mail, 
-  FileText, 
-  X,
-  TrendingUp,
-  Info,
-  Settings,
-  Building2
-} from 'lucide-react';
-
-interface NavigationItem {
-  name: string;
-  icon: any;
-  path: string;
-  current: boolean;
-}
+import { X, Settings } from 'lucide-react';
+import { navigationItems } from './NavigationConfig';
 
 interface AppSidebarProps {
   sidebarOpen: boolean;
@@ -29,16 +12,6 @@ interface AppSidebarProps {
 
 const AppSidebar = ({ sidebarOpen, setSidebarOpen, userName, currentPath }: AppSidebarProps) => {
   const navigate = useNavigate();
-
-  const navigationItems: NavigationItem[] = [
-    { name: 'Dashboard', icon: TrendingUp, path: '/dashboard', current: currentPath === '/dashboard' },
-    { name: 'Chat', icon: MessageSquare, path: '/chat', current: currentPath === '/chat' },
-    { name: 'Scheduler', icon: Calendar, path: '/scheduler', current: currentPath === '/scheduler' },
-    { name: 'Emails', icon: Mail, path: '/emails', current: currentPath === '/emails' },
-    { name: 'Audit', icon: FileText, path: '/audit', current: currentPath === '/audit' },
-    { name: 'Your Organisation', icon: Building2, path: '/your-organisation', current: currentPath === '/your-organisation' },
-    { name: 'About', icon: Info, path: '/about', current: currentPath === '/about' },
-  ];
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -63,7 +36,7 @@ const AppSidebar = ({ sidebarOpen, setSidebarOpen, userName, currentPath }: AppS
             key={item.name}
             onClick={() => handleNavigation(item.path)}
             className={`w-full flex items-center px-3 py-2 mt-1 text-sm font-medium rounded-lg transition-colors ${
-              item.current
+              item.path === currentPath
                 ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
