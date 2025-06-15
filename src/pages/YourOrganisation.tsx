@@ -75,7 +75,7 @@ const YourOrganisation = () => {
             .from('user_organizations')
             .select(`
               organization_id,
-              organizations!inner(name)
+              organizations!user_organizations_organization_id_fkey(name)
             `)
             .eq('user_id', user.id)
             .single();
@@ -90,7 +90,7 @@ const YourOrganisation = () => {
                 user_id,
                 executive_role,
                 created_at,
-                profiles!inner(full_name)
+                profiles!user_organizations_user_id_fkey(full_name)
               `)
               .eq('organization_id', userOrg.organization_id)
               .order('created_at', { ascending: true });
